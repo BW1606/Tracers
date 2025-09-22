@@ -9,7 +9,6 @@
 - `Snapshot2dFLASH.py` class, or an equivalent class for a different hydrodynamics code output  
   *(see “Hydro Snapshot class” section for details)*
 - `Progenitors.py` with a working progenitor class for the used progenitor file
-- `ensure_ascending_times.py`
 
 ---
 
