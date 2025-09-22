@@ -63,6 +63,9 @@ This program integrates the paths of Lagrangian tracer particles throughout a hy
 - Using SLURM, the provided script can be run with:  
   ```bash
   sbatch runTracers.sh
+- Alternatively, run locally with (might want to limit the amount of CPU's)
+  ```bash
+  python CalcTracers.py
 
 ---
 
