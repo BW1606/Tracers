@@ -29,6 +29,8 @@ This program integrates the paths of Lagrangian tracer particles throughout a hy
 
 1. Will be added later
 
+---
+
 ## Checklist before running
 
 1. **Snapshot path**: Set `path_to_pltfiles` to the directory containing snapshots.  
