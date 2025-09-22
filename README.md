@@ -38,7 +38,7 @@ This program integrates the paths of Lagrangian tracer particles throughout a hy
    - **Note:** If the directory exists, the run is aborted to avoid overwriting previous data.  
 3. **Initial composition**: Set `calc_seeds = True/False`.  
    - If `True`, specify:  
-     - The progenitor file type (currently only NuGrid supported)  
+     - The progenitor file type (currently only MESA output and FLASH input format supported)  
      - The path to the progenitor file: `path_to_progfile`  
 4. **Integration direction**: Forward or backward in time.  
    - Backward integration is recommended for nucleosynthesis.  
