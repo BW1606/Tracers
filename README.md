@@ -26,6 +26,10 @@ This program integrates the paths of Lagrangian tracer particles throughout a hy
 
 ---
 
+## How the code works
+
+1. Will be added later
+
 ## Checklist before running
 
 1. **Snapshot path**: Set `path_to_pltfiles` to the directory containing snapshots.  
@@ -58,3 +62,13 @@ This program integrates the paths of Lagrangian tracer particles throughout a hy
 - Using SLURM, the provided script can be run with:  
   ```bash
   sbatch runTracers.sh
+
+---
+
+## Monitor a running calcuation
+
+- The run.log file has information about the progress of the code - try it out:  
+  ```bash
+  tail -f /path/to/output_dir/run.log
+  
+ 
