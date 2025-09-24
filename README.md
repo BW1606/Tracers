@@ -27,7 +27,9 @@ This program integrates the paths of Lagrangian tracer particles throughout a hy
 
 ## How the code works
 
-1. Will be added later
+1. The code places the tracers according to the placement parameters (only_unbound, maxTemp, maxDens) and depending on the integration direction (backwards/forwards) at the first or last snapshot of the simulation.
+2. Afterwards the amount of snapshots will be chunked and with one chunk at a time the code calls integrate_chunk(args). Here the snapshots will be read in as objects of the class Snapshot2dFLASH (or simmilar (more on that later)) and a multiprocessing pool will be initiated. Now each worker calls the integrate_single_tracer(args) funciton with the start position of the tracer at the time of the chunk. integrate_single_tracer(args) handles the integration of the tracer throughout the simulation domain and the times in the chunk, after the chunk the data will be saved in the tracerfiles set up in path_to_tracers.
+3. integrate_single_tracer(args): gets various arguments (see in the code) but most imortantly the list of snapshot objects for the specific chunk and the starting position of the tracer. The heart of the function is the integration with scipy.integrate.solve_ivp which requires a function velocity_field(pos, t) which gives back the velocities in x- and y-direction at a given time and space. After integrating the path throughout the chunk all the thermodynamic data required/specified by the user (calcNeutrinos = True/False, or custom keys) are calculated at the timesteps of the snapshots (every 1ms in my simulations). This requires the class Snapshot2dFLASH to have a method calles snap.getQuantAtPos(self, pos, key) which gives back the value of key interpolated to the position pos (more on that later).... 
 
 ---
 
