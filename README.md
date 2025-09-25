@@ -2,6 +2,9 @@
 
 **Author:** Benedikt Weinhold – 10/09/2025
 
+## Disclaimer
+-until I finish my Master-Thesis in the december of 2025, this is still work in progress. The program is ready for use but there might be quality of life improvements in the future, Furthermore in the end i will add some analysis tools to calculate and visualize the composition of the calculated tracers and the simulation in order to physically understand why, what kind of composition resulted in the simulation. These analysis tools will assume the composition of the tracers were calculated with the help of the nuclear reaction network WinNet (https://github.com/nuc-astro/WinNet)
+
 ---
 
 ## Dependencies
