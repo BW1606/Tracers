@@ -4,7 +4,7 @@
 #
 #  MAIN
 #
-#  main execution of the program depeding on the input in config
+#  main execution of the program depending on the input in config
 #  For further explanations see README.md 
 # ==============================================================================
 
@@ -189,17 +189,22 @@ if __name__ == "__main__":
         active_after = sum(still_calc)
         write_log(PATH_TO_OUTPUT,f"Active tracers after chunk: {active_after}\n")
 
+    #------------ CLEAN UP AFTER INTEGRATION ---------------------
+    
     write_log(PATH_TO_OUTPUT,f'{len(oob_list)} OOB events:')
 
+    #print all oob events
     for oob_event in oob_list:
         write_log(PATH_TO_OUTPUT,f'  {oob_event}')
 
     write_log(PATH_TO_OUTPUT,f"Integration complete. Total timesteps: {len(PLT_FILES)}")
 
+    #if backwards - reverse time order in tracer file to ascending
     if DIRECTION == 'backward':
         write_log(PATH_TO_OUTPUT, f'Assuring ascending time order for nuclear network')
         ensure_ascending_time_order_nse_flag(PATH_TO_OUTPUT, reached_NSE)
-
+        
+    #if calc_seeds - calculate initial composition of the tracers from porgenitor file
     if CALC_SEEDS:
         write_log(PATH_TO_OUTPUT, f'Starting to calculate initial compositions of tracers')
         seeds_dir = os.path.join(PATH_TO_OUTPUT, 'seeds')
@@ -208,6 +213,7 @@ if __name__ == "__main__":
         
         tracers = sorted(glob(os.path.join(PATH_TO_OUTPUT, "tracer*")))
 
+        #for now these two are implemented - see README.md to add others
         if PROG_TYPE == 'NuGrid':
             progenitor = Prog.Progenitor_NuGrid(path_to_progfile=PATH_TO_PROGFILE)
         elif PROG_TYPE == 'FLASH':
