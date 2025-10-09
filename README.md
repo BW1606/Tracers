@@ -46,7 +46,7 @@ Description: Python pipeline for placing and integrating Lagrangian tracer parti
 ---
 
 ## Repository Structure
-
+```
 Tracers/
 ├── main.py # Main execution script
 ├── config.py # User-configurable parameters
@@ -61,7 +61,7 @@ Tracers/
 ├── logs/ # Output logs
 ├── README.md # This file
 └── basic_nuclear_analysis(soon)
-
+```
 ---
 
 ## Usage
@@ -81,7 +81,13 @@ python main.py
 ---
 ## List of parameters
   - In the future (TODO)
-
+---
+## Snapshot2D Class
+  -  in the future (TODO)
+---
+## Progenitor Class
+  - in the future (TODO) 
+---
 ## Citation
 
 No citation is required, but an acknowledgement is appreciated (Also because im interested in your results :))
