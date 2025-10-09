@@ -12,7 +12,7 @@ Description: Python pipeline for placing and integrating Lagrangian tracer parti
       all while saving the thermodynamic conditions ('temp', 'dens', 'ye', ...) in order to do a full post-processing nucleosynthesis analysis with a nuclear reaction network.
   - The format of the output files is made as an input for the open source nuclear reaction network WinNet (https://github.com/nuc-astro/WinNet)
   - The code is developed and tested for tracers in core collapse supernovae, but can in principle be used for any hydro-output regardless of the simulated event
-  - As is the code can read  and process the snapshots/plotfiles from the Hydro-Code FLASH but without much work this can be adjusted for ANY simulation code
+  - As is, the code can read  and process the snapshots/plotfiles from the Hydro-Code FLASH but without much work this can be adjusted for ANY simulation code
      (more on that in the section *Snapshot2D class*)
   - There are some jupyter notebooks with elementary nucleosynthesis analysis added, these expect the nucleosynthesis calculation to be done with WinNet.
 
