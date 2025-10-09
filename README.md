@@ -8,7 +8,7 @@ Description: Python pipeline for placing and integrating Lagrangian tracer parti
 ---
 
 ## Aims
-  - This  Repository includes a Pipeline to integrate the path of *Lagrangian Tracer Particles* throughout a astrophysical simulation from the output snapshots,
+  - This  Repository includes a Pipeline to integrate the path of *Lagrangian Tracer Particles* throughout a 2D astrophysical simulation from the output snapshots,
       all while saving the thermodynamic conditions ('temp', 'dens', 'ye', ...) in order to do a full post-processing nucleosynthesis analysis with a nuclear reaction network.
   - The format of the output files is made as an input for the open source nuclear reaction network WinNet (https://github.com/nuc-astro/WinNet)
   - The code is developed and tested for tracers in core collapse supernovae, but can in principle be used for any hydro-output regardless of the simulated event
@@ -25,9 +25,13 @@ Description: Python pipeline for placing and integrating Lagrangian tracer parti
   - Supports increasing tracer density in regions where `|Ye - 0.5|` is significant.  
 
 - **Tracer Integration**  
-  - Integrates tracers through the FLASH velocity field using shared-memory interpolators.  
+  - Integrates tracers through the FLASH velocity field interpolating both in space between cells and in time between snapshots.  
   - Supports forward and backward time integration with boundary checks and event termination (OOB, NSE).  
   - Parallelized with Python multiprocessing.  
+
+- **Flexible File Read-in**
+  - easy to modify to the output of other simulation codes
+  - stores Snapshots in *python.multiprocessing.shared_memory* to allow for huge simulation output files (i.e. when generalizing to 3D simulations)
 
 - **Output Handling**  
   - Writes tracer positions and thermodynamic histories to text files.  
