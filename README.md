@@ -4,7 +4,7 @@ Author: Benedikt Weinhold (~Oct 2025)
 Description: Python pipeline for placing and integrating Lagrangian tracer particles through 2D axisymmetric FLASH supernova simulations.  
 
 ## Disclaimer
-  -  This is work in progress until i finish my master thesis end of 2026
+  -  This is work in progress until i finish my master thesis end of 2025
 ---
 
 ## Aims
