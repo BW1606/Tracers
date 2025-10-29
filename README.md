@@ -68,6 +68,10 @@ Tracers/
 ```
 ---
 
+##  Workflow
+
+![Workflow Diagram](./workflow_diag.png)
+
 ## Usage
 
 1. **Configure parameters** in `config.py`, including:
