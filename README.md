@@ -94,7 +94,7 @@ All parameters are configured in `config.py` before running the integration.
 ### File Paths
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `PATH_TO_PLTFILES` | str | Path to FLASH plotfiles/snapshots (with wildcard pattern) |
+| `PATH_TO_PLTFILES` | str | Path to (FLASH) plotfiles/snapshots|
 | `PATH_TO_OUTPUT` | str | Directory where tracer output files will be written |
 | `PATH_TO_PROGFILE` | str | Path to progenitor model file for initial composition |
 | `PATH_TO_TRACERS_START` | str | Path to file containing initial tracer positions (when `PLACEMENT_METHOD='FromFile'`) |
@@ -109,11 +109,11 @@ All parameters are configured in `config.py` before running the integration.
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `DIRECTION` | str | - | Time direction of integration: `'forward'` or `'backward'` |
-| `CHUNK_SIZE` | int | 1300 | Number of snapshots to load and process at once (memory management) |
+| `CHUNK_SIZE` | int | - | Number of snapshots to load and process at once (memory management) |
 | `RTOL` | float | 1e-2 | Relative tolerance for `solve_ivp` ODE integrator |
 | `ATOL` | float | 1e4 | Absolute tolerance for `solve_ivp` ODE integrator |
 | `MAXSTEP` | float | 1e-4 | Maximum timestep size for `solve_ivp` integrator |
-| `TIME_LIMIT` | float | 6000.0 | Maximum integration time per tracer (seconds) to prevent stalling |
+| `TIME_LIMIT` | float | 6000.0 | Maximum integration time per tracer (seconds) to prevent stalling (adjust with `CHUNK_SIZE`) |
 
 ### Physics Options
 | Parameter | Type | Default | Description |

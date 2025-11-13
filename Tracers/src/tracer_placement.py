@@ -15,11 +15,11 @@ import random
 
 
 from .utils import write_log 
-from config import PATH_TO_OUTPUT
+from config import PATH_TO_OUTPUT, ONLY_UNBOUND, MAX_DENS_PLACE, MAX_TEMP_PLACE, YE_STEPS
 
 # -------------- POSITION PROPORTIONAL TO DENSITY -----------------------------
 
-def PosFromDens_Bene_steps(snap, ptN, only_unbound=True, maxDens=None, maxTemp=10e9):
+def PosFromDens_Bene_steps(snap, ptN):
     """
     Place tracer particles in a FLASH snapshot with increased density
     in regions where |Ye - 0.5| > 0.02, 0.04, 0.06 (factor 4, 8, 16).
@@ -53,10 +53,10 @@ def PosFromDens_Bene_steps(snap, ptN, only_unbound=True, maxDens=None, maxTemp=1
         r = np.sqrt(x_ccenters**2 + y_ccenters**2)
         dot = x_ccenters * cvelx + y_ccenters * cvely
         cvrad = dot / np.maximum(r, 1e-20)
-        if only_unbound:
-            mask = (cener + cgpot > 0) & (cvrad > 0) & (ctemp < maxTemp)
+        if ONLY_UNBOUND:
+            mask = (cener + cgpot > 0) & (cvrad > 0) & (ctemp < MAX_TEMP_PLACE)
         else:
-            mask = (cdens < maxDens) & (ctemp < maxTemp)
+            mask = (cdens < MAX_DENS_PLACE) & (ctemp < MAX_TEMP_PLACE)
         return mask
 
     # --- 1️⃣ Loop over all blocks to extract relevant cell info ---
@@ -124,13 +124,14 @@ def PosFromDens_Bene_steps(snap, ptN, only_unbound=True, maxDens=None, maxTemp=1
             continue  # skip empty blocks
 
         # Increase tracer density in regions with high Ye deviation
-        ye_dev = np.abs(np.array(block_cell_ye[block_id]) - 0.5).max()
-        if ye_dev > 0.06:
-            ntr *= 16
-        elif ye_dev > 0.04:
-            ntr *= 8
-        elif ye_dev > 0.02:
-            ntr *= 4
+        if YE_STEPS:
+            ye_dev = np.abs(np.array(block_cell_ye[block_id]) - 0.5).max()
+            if ye_dev > 0.06:
+                ntr *= 16
+            elif ye_dev > 0.04:
+                ntr *= 8
+            elif ye_dev > 0.02:
+                ntr *= 4
 
         # Compute probabilities for sampling cells
         probs = masses / masses.sum()

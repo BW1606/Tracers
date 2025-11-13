@@ -24,38 +24,57 @@ from time import time
 TODO's:
 
 -once tracer program sufficiently tested, rm tr_id arguments
+- instead of calc cell coords every getQuantAtPos - do once when reading in, have as attribute? --> speedup
 
 """
 class Snapshot2D:
 
-    def __init__(self, path, keys, only_leafs = True):
-
+    def __init__(self, path, keys, only_leafs=True):
         with h5.File(path, 'r') as f:
             if only_leafs:
                 node_type = f['node type'][:] 
                 leaf_mask = (node_type == 1)
-                bbox = f['bounding box'][:][leaf_mask]
-                realscalars = f['real scalars'][:]
-                realruntimeparams = f['real runtime parameters'][:]
-                td_vars = {}
-                for key in keys:
-                    td_vars[key] = np.squeeze(f[key][:][leaf_mask])
             else:
-                bbox = f['bounding box'][:]
-                realscalars = f['real scalars'][:]
-                realruntimeparams = f['real runtime parameters'][:]
-                td_vars = {}
-                for key in keys:
-                    td_vars[key] = np.squeeze(f[key][:])
+                leaf_mask = slice(None)
 
-        self.bbox = bbox
-        self.realruntimeparams = realruntimeparams
-        self.realscalars = realscalars
-        self.td_vars = td_vars
-        self.cells_per_block_x = 16 #TODO: read in from hdf5 file itself
-        self.cells_per_block_y = 16
+            # Bounding boxes and scalar fields
+            self.bbox = f['bounding box'][:][leaf_mask]
 
-    def cellCoords(self, blockID, with_edges = False):
+            #idea: read in raw data - with weird h5 fmt - make dict out of it, store wanted quantity as attribute: self.attr
+            # then only store attributes (normal scalars and arrays in shm to reconstruct from)
+            realscalars_raw = f['real scalars'][:]
+            realscalars_dict = {
+                key.decode('utf-8').strip() if isinstance(key, bytes) else str(key): value
+                for key, value in realscalars_raw
+            }
+            self.simtime = realscalars_dict["time"]
+
+            integerscalars_raw = f['integer scalars'][:]
+            integerscalars_dict = {
+                key.decode('utf-8').strip() if isinstance(key, bytes) else str(key): value
+                for key, value in integerscalars_raw
+            }
+            self.cells_per_block_x = integerscalars_dict['nxb'] 
+            self.cells_per_block_y = integerscalars_dict['nyb']
+
+            realruntimeparams_raw = f['real runtime parameters'][:]
+            realruntimedata_dict = {
+                key.decode('utf-8').strip() if isinstance(key, bytes) else str(key): value
+                for key, value in realruntimeparams_raw
+            }
+            self.xmin = realruntimedata_dict['xmin']
+            self.xmax = realruntimedata_dict['xmax']
+            self.ymin = realruntimedata_dict['ymin']
+            self.ymax = realruntimedata_dict['ymax']
+
+            # Thermodynamic & neutrino quantities
+            self.td_vars = {}
+            for key in keys:
+                self.td_vars[key] = np.squeeze(f[key][:][leaf_mask])
+
+
+    def cellCoords(self, blockID,tr_id =None,with_edges = False):
+
         xmin = self.bbox[blockID, 0, 0]
         xmax = self.bbox[blockID, 0, 1]
         ymin = self.bbox[blockID, 1, 0]
@@ -77,7 +96,6 @@ class Snapshot2D:
 
         return cell_centers_x, cell_centers_y
 
-  
     def cellVolumes(self, blockID):
         """
         Compute the volume of each cell in a block for 2D axisymmetric FLASH sims.
@@ -106,14 +124,10 @@ class Snapshot2D:
         return vol_block
 
     def currentSimTime(self):
-        return self.realscalars[2][1]
+        return self.simtime
     
     def getSimArea(self):
-        xmin = self.realruntimeparams[130][1]
-        xmax = self.realruntimeparams[129][1]
-        ymin = self.realruntimeparams[133][1]
-        ymax = self.realruntimeparams[132][1]
-        return xmin, xmax, ymin, ymax
+        return self.xmin, self.xmax, self.ymin, self.ymax
 
     def findBlock(self, x, y, tr_id): #tr_id for testing if singular tracer does weird thing
 
@@ -128,37 +142,35 @@ class Snapshot2D:
             print(f"⚠️ Tracer {tr_id}: No block found for point ({x}, {y})", flush=True)
             return None
         else:
+            #if Only_leafs = False the last found index is normally the leaf block
             return block_ids[len(block_ids)-1]
 
-    def interpolateBlock(self, var, blockID):
-        x_coords, y_coords = self.cellCoords(blockID)
-        return RegularGridInterpolator((x_coords, y_coords), self.td_vars[var][blockID].squeeze().T, method='linear', bounds_error=False, fill_value=None) #TODO: zwischen 0-0.5 dx checken, method = nearest
+    def interpolateBlock(self, var, blockID, tr_id):
+        x_coords, y_coords = self.cellCoords(blockID, tr_id)
+        return RegularGridInterpolator((x_coords, y_coords),
+                                       self.td_vars[var][blockID].squeeze().T,
+                                       method='linear',
+                                       bounds_error=False,
+                                       fill_value=None)
 
     def getQuantAtPos(self, var, x, y, tr_id=None):
 
         xmin, xmax, ymin, ymax = self.getSimArea()
 
-        #sometimes  x goes through this OOB check but then doesnt find a block in findBlock() - floating point uncertainty?
-        eps = 1e-10
-        if x-eps < xmin or x+eps > xmax or y-eps < ymin or y+eps > ymax:
-            if tr_id is not None:
-                print(f'tracer {tr_id} accesses {var} OOB at: {x,y}, returning 0')
+        eps_inner = 1       #1cm
+        eps_outer = 1e3     #10m
+
+        out_of_bounds = (
+            (x < xmin + eps_inner) or (x > xmax - eps_outer) or
+            (y < ymin + eps_outer) or (y > ymax - eps_outer)
+        )
+
+        if out_of_bounds and tr_id is not None:
+            #print(f'tracer {tr_id} accesses {var} OOB at: ({x:.8e}, {y:.8e}), returning 0')
             return 0
 
-        # if x-eps < xmin:
-        #     x = xmin+eps
-
-        # if x+eps > xmax:
-        #     x = xmax-eps
-
-        # if y-eps < ymin:
-        #     y = ymin+eps
-
-        # if y+eps > ymax:
-        #     y = ymax-eps
-
         blockID = self.findBlock(x,y, tr_id)
-        interp_func = self.interpolateBlock(var, blockID)
+        interp_func = self.interpolateBlock(var, blockID, tr_id)
         val = interp_func([x,y]).item()
 
         if not np.isfinite(val):
@@ -217,55 +229,57 @@ class Snapshot2D:
     
         return r_sorted, M_enc
 
+
     @classmethod
     def from_shm(cls, shm_registry_entry):
         """
         Reconstruct a Snapshot2D-like object from shared memory buffers
-        and keep SharedMemory handles alive to prevent premature release.
+        created by create_shm_for_snapshot_generic().
+        Keeps SharedMemory handles alive to prevent premature release.
         """
         self = object.__new__(cls)  # bypass __init__
 
         def parse_dtype(dtype_meta):
             """
             Convert stored dtype string or object back to np.dtype.
-            Handles structured dtypes like "[('name','S80'),('value','<f8')]"
+            Handles structured dtypes like "[('name','S80'),('value','<f8')]".
             """
             if isinstance(dtype_meta, str):
                 try:
-                    # Try evaluating structured dtype
                     return np.dtype(eval(dtype_meta))
                 except Exception:
-                    # fallback to simple dtype
                     return np.dtype(dtype_meta)
             else:
                 return np.dtype(dtype_meta)
 
-        # Store SharedMemory handles to prevent garbage collection
+        # Store SharedMemory handles to prevent GC
         self._shm_handles = []
 
-        # Attach bbox, realscalars, realruntimeparams
-        for attr in ["bbox", "realscalars", "realruntimeparams"]:
-            meta = shm_registry_entry[attr]
-            shm = shared_memory.SharedMemory(name=meta["name"])
-            self._shm_handles.append(shm)
-            setattr(
-                self,
-                attr,
-                np.ndarray(meta["shape"], parse_dtype(meta["dtype"]), buffer=shm.buf)
-            )
+        # Iterate over all attributes in the SHM metadata
+        for attr_name, attr_meta in shm_registry_entry.items():
+            if attr_name == "td_vars":
+                continue  # handle separately
 
-        # Attach td_vars
+            if isinstance(attr_meta, dict) and "name" in attr_meta:
+                # It's an array stored in SHM
+                shm = shared_memory.SharedMemory(name=attr_meta["name"])
+                self._shm_handles.append(shm)
+                arr = np.ndarray(attr_meta["shape"], parse_dtype(attr_meta["dtype"]), buffer=shm.buf)
+                setattr(self, attr_name, arr)
+            else:
+                # scalar or metadata-only
+                setattr(self, attr_name, attr_meta.get("value", None))
+
+        # Handle td_vars separately
         self.td_vars = {}
-        for key, meta in shm_registry_entry["td_vars"].items():
+        td_vars_meta = shm_registry_entry.get("td_vars", {})
+        for key, meta in td_vars_meta.items():
             shm = shared_memory.SharedMemory(name=meta["name"])
             self._shm_handles.append(shm)
-            self.td_vars[key] = np.ndarray(meta["shape"],  parse_dtype(meta["dtype"]), buffer=shm.buf)
-
-        # static metadata
-        self.cells_per_block_x = shm_registry_entry.get("cells_per_block_x", 16)
-        self.cells_per_block_y = shm_registry_entry.get("cells_per_block_y", 16)
+            self.td_vars[key] = np.ndarray(meta["shape"], parse_dtype(meta["dtype"]), buffer=shm.buf)
 
         return self
+
 
     def close_shm(self):
         """Close all attached shared memory blocks."""
@@ -277,17 +291,88 @@ class Snapshot2D:
                     pass
             self._shm_handles = [] 
 
-# path_to_pltfiles = '/home/template_scripts/FLASH/2D_simulation/S15_Ritter_hf10_2d/output/S15_Ritter_hf10_hdf5_plt_cnt_'
-# plt_files = sorted(glob(path_to_pltfiles + "*", recursive=False))
+    def get_unbound_composition(self):
+        """
+        Go through all cells that are unbound (ener + gpot > 0 and vrad > 0)
+        and sum up/average the composition.
 
-# testsnap = Snapshot2D(plt_files[998], ['temp', 'dens', 'ye', 'ener', 'gpot', "velx", 'vely'], only_leafs=False)
+        Returns
+        -------
+        ejected_mass : float
+            Total mass of all unbound cells.
+        massfractions : dict
+            Dictionary of isotopes with their mass fraction in the ejecta:
+            { 'h1': {'Z':1, 'A':1, 'X': 0.00168}, ... }
+        """
+        ejected_mass = 0.0
+        massfractions = {iso: 0.0 for iso in self.isotopes}
 
-# x = 1e-4
-# y = 2e8
-# block = testsnap.findBlock(x,y, 1)
+        # Loop over blocks
+        for block_id in range(len(self.bbox)):
+            # Cell centers
+            x_ccenters, y_ccenters = self.cellCoords(block_id)
+            x_ccenters_2d = x_ccenters[:, None] * np.ones((1, self.cells_per_block_y))
+            y_ccenters_2d = np.ones((self.cells_per_block_x, 1)) * y_ccenters[None, :]
 
-# print(block)
+            # Cell properties
+            cvols = self.cellVolumes(block_id)
+            cdens = self.td_vars['dens'][block_id]
+            cvelx = self.td_vars['velx'][block_id]
+            cvely = self.td_vars['vely'][block_id]
+            cener = self.td_vars['ener'][block_id]
+            cgpot = self.td_vars['gpot'][block_id]
 
-# print(testsnap.cellCoords(block[0]))
+            # Compute radial velocity
+            r = np.sqrt(x_ccenters_2d**2 + y_ccenters_2d**2)
+            dot = x_ccenters_2d * cvelx + y_ccenters_2d * cvely
+            vrad = dot / np.maximum(r, 1e-20)
 
-# print(testsnap.getQuantAtPos('velx',x,y, 1))
+            # Mask for unbound cells
+            mask = (cener + cgpot > 0) & (vrad > 0)
+
+            # Mass of each cell
+            cmasses = cdens * cvols
+
+            # Total ejected mass in this block
+            ejected_mass_block = np.sum(cmasses[mask])
+            ejected_mass += ejected_mass_block
+
+            # Sum mass contribution of each isotope
+            for iso in self.isotopes:
+                iso_masses = self.isotopes[iso][block_id] * cmasses
+                mask_flat = mask.flatten()
+                iso_masses_flat = iso_masses.flatten()
+                massfractions[iso] += np.sum(iso_masses_flat[mask_flat])
+
+        # Convert absolute isotope masses to mass fractions
+        if ejected_mass > 0:
+            for iso in massfractions:
+                massfractions[iso] = {
+                    'Z': self.rn_16[iso]['Z'],
+                    'A': self.rn_16[iso]['A'],
+                    'X': massfractions[iso] / ejected_mass
+                }
+        else:
+            # No ejecta; return zero fractions
+            for iso in massfractions:
+                massfractions[iso] = {
+                    'Z': self.rn_16[iso]['Z'],
+                    'A': self.rn_16[iso]['A'],
+                    'X': 0.0
+                }
+
+        return ejected_mass, massfractions
+
+# testpath = '/home/bweinhold/S15_Ritter/S15_Ritter_hf10_hdf5_plt_cnt_1170'
+# testsnap = Snapshot2D(testpath, ["dens", "ye"], True)
+
+# print(testsnap.bbox[1][:2])
+
+# print(testsnap.cellCoords(1))
+
+# print(testsnap.findBlock(1.991275e+08, -2.230449e+08,0))
+# print(testsnap.td_vars['ye'][144])
+# print(testsnap.getQuantAtPos('ye', 1.991275e+08, -2.230449e+08, 0))
+
+# print('MJ pos:', testsnap.getQuantAtPos('ye', 1.9930688882748944e+08, -2.2313298923654997e+08))
+# print('mine pos:', testsnap.getQuantAtPos('ye', 1.991275e+08, -2.230449e+08))
