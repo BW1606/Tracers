@@ -108,23 +108,37 @@ def integrate_chunk(chunk_args):
         log_interval = max(1, n_tasks // 10)
         chunksize = max(1, n_tasks // (num_cpus * 4))
         
+        #TODO: check if this logging works 
+        start_time = time.time()
+        last_log = start_time
+        log_interval_sec = 120
+
         try:
             # Process tracers in parallel
             with mp.Pool(processes=num_cpus) as pool:
-                for i, res in enumerate(pool.imap_unordered(_integrate_single_tracer_wrapper, task_args, chunksize=chunksize), start=1):
-                    # Store results
+                for i, res in enumerate(
+                    pool.imap_unordered(_integrate_single_tracer_wrapper, task_args, chunksize=chunksize),
+                    start=1
+                ):
+                    # --- Process results ---
                     if isinstance(res, Exception):
                         failed_list.append(("unknown", repr(res)))
                     else:
-                        tr_pos, oob_events, fail_events, tr_id = res[0], res[1], res[2], res[3]
+                        tr_pos, oob_events, fail_events, tr_id = res
                         new_positions[tr_id] = tr_pos
                         oob_list.extend(oob_events)
                         failed_list.extend(fail_events)
 
-                    # Log progress at intervals
-                    if i % log_interval == 0 or i == n_tasks:
+                    # --- Time-based progress logging ---
+                    now = time.time()
+                    if now - last_log >= log_interval_sec or i == n_tasks:
+                        elapsed = now - start_time
                         progress_bar = create_progress_bar(i, n_tasks)
-                        write_log(output_dir, f"     Chunk progress: {progress_bar} ")
+                        write_log(
+                            output_dir,
+                            f"     Chunk progress: {progress_bar}  ({i}/{n_tasks} tasks, elapsed {elapsed/60:.1f} min)"
+                        )
+                        last_log = now
 
         except Exception as e:
             err_msg = ''.join(traceback.format_exception(type(e), e, e.__traceback__))
@@ -300,11 +314,11 @@ def integrate_single_tracer(tr_id, start_pos, times_chunk, snapshots_meta, sgn, 
         t_post_writing = time.time()
 
         # Log timing information for selected tracers
-        if tr_id % 1000 == 0:
-            write_log(output_dir, f'    Tracer {tr_id}: snap-reconstruction: {t_reconstruct - tracer_start_time:.2f}s, \
-                    integration in  {t_post_integration - t_reconstruct:.2f}s \
-                    I/O saving in {t_post_writing - t_post_integration:.2f}s\
-                    overall: {t_post_writing - tracer_start_time:.2f}s')
+        # if tr_id % 1000 == 0:
+        #     write_log(output_dir, f'    Tracer {tr_id}: snap-reconstruction: {t_reconstruct - tracer_start_time:.2f}s, \
+        #             integration in  {t_post_integration - t_reconstruct:.2f}s \
+        #             I/O saving in {t_post_writing - t_post_integration:.2f}s\
+        #             overall: {t_post_writing - tracer_start_time:.2f}s')
 
         # Update multiprocessing arrays for next chunk
         chunk_first_teval[tr_id] = t_eval[-1]
