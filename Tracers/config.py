@@ -19,7 +19,7 @@ TODO:
 
 # S15
 PATH_TO_PLTFILES = '/home/template_scripts/FLASH/2D_simulation/S15_Ritter_hf10_2d/output/S15_Ritter_hf10_hdf5_plt_cnt'
-PATH_TO_OUTPUT = '/home/bweinhold/Auswertung/2D_Analysis/2D_Tracers/data/Simulations/S15_Ritter_hf10/10ktr_ouB_new_oc'
+PATH_TO_OUTPUT = '/home/bweinhold/Auswertung/2D_Analysis/2D_Tracers/data/Simulations/S15_Ritter_hf10/10ktr_ouB_new'
 PATH_TO_PROGFILE = '/home/bweinhold/Auswertung/2D_Analysis/2D_Tracers/data/Progenitors/S15_NuGrid_log423.data'
 
 #HeS_net
@@ -42,9 +42,9 @@ LOG_EVERY = 120#s                                               # Interval in wh
 
 # Integration
 DIRECTION = 'backward'                                          # 'forward' or 'backward' - time direction of integration
-CHUNK_SIZE = 1300                                               # tracers are integrated throughout the simulation in chunks
+CHUNK_SIZE = 450                                               # tracers are integrated throughout the simulation in chunks
 RTOL, ATOL, MAXSTEP = 1e-2, 1e4, 1e-4                           # tolerances for solve_ivp/RKF5 - see README
-TIME_LIMIT = 600                                             # single tracer time limit to avoid convergance problems
+TIME_LIMIT = CHUNK_SIZE                                                # single tracer time limit to avoid convergance problems
 
 # Physics
 WITH_NEUTRINOS = True                                           # also stores luminosity and mean energy per neutrino in tracerfiles
@@ -58,7 +58,7 @@ NUM_TRACERS = 10000                                              # if PosWithDen
 ONLY_UNBOUND = True                                             # if PosWithDens: only place tracers in ejected areas
 MAX_TEMP_PLACE = 7e9                                           # if backwards: Dont place tracers above 
 YE_STEPS = True                                                 # If backwards: increases tracer resolution in nu-influenced areas
-MAX_DENS_PLACE = 1e11                                                 # if not ONLY_UNBOUND: dont place tracers in areas with dens > MAX_DENS (i.e. in PNS)
+MAX_DENS_PLACE = 1e11                                                # if not ONLY_UNBOUND: dont place tracers in areas with dens > MAX_DENS (i.e. in PNS)
 PATH_TO_TRACERS_START = '/home/bweinhold/Auswertung/2D_Analysis/2D_Tracers/data/test_positions/test_positions_tr25_oc'                                      # if FromFile: where is the file with the positions
 
 

@@ -10,7 +10,6 @@
 
 # ---------- standard library -------------------------------
 import numpy as np
-from glob import glob
 from time import time
 import os, sys, multiprocessing as mp
 import multiprocessing as mp
@@ -23,7 +22,6 @@ from src.tracer_placement import PosFromDens_blockbased, PosFromFile
 from src.tracer_integration import sgn, integrate_chunk
 from src.tracer_files import ensure_ascending_time_order_nse_flag, write_all_headers_parallel, tracer_entries, keys
 
-import src.Progenitors as Prog
 import src.Snapshot2D as Snap
 
 
@@ -188,6 +186,7 @@ if __name__ == "__main__":
 
     #if calc_seeds - calculate initial composition of the tracers from porgenitor file
     if CALC_SEEDS:
+        write_log(PATH_TO_OUTPUT, f'Starting to calculate initial compositions of tracers')
         calc_seeds()
 
     write_log(PATH_TO_OUTPUT, f'Tracer calculation complete :) - total time {(time()-t0)/60:.2f} minutes.')

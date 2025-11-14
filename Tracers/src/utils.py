@@ -342,7 +342,7 @@ def create_shm_for_snapshot_generic(snapshot, td_vars_keys=None):
 
         # Only create shared memory for numpy arrays
         if isinstance(attr_value, np.ndarray):
-            meta, shm = create_shm_for_array(f"{attr_name}_", attr_value)
+            meta, shm = create_shm_for_array(attr_value)
             shm_info[attr_name] = meta
             shm_handles.append(shm)
         else:
@@ -355,7 +355,7 @@ def create_shm_for_snapshot_generic(snapshot, td_vars_keys=None):
         for key in td_vars_keys:
             if key in snapshot.td_vars:
                 arr = snapshot.td_vars[key]
-                meta, shm = create_shm_for_array(f"{key}_", arr)
+                meta, shm = create_shm_for_array(arr)
                 td_shm_info[key] = meta
                 td_shm_handles.append(shm)
     if td_shm_info:

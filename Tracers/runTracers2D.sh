@@ -5,7 +5,7 @@
 #SBATCH --partition=ComputeNew
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=2
+#SBATCH --cpus-per-task=32
 #SBATCH --mem=24G
 ##SBATCH --time=3:00:00                           
 
