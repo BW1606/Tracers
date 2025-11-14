@@ -121,7 +121,6 @@ def integrate_chunk(chunk_args):
             while not stop_flag["stop"]:
                 time.sleep(LOG_INTERVAL)
                 i = progress_counter["i"]
-                elapsed = time.time() - start_time
                 progress_bar = create_progress_bar(i, n_tasks)
                 write_log(
                     output_dir,
