@@ -19,7 +19,7 @@ TODO:
 
 # S15
 PATH_TO_PLTFILES = '/home/template_scripts/FLASH/2D_simulation/S15_Ritter_hf10_2d/output/S15_Ritter_hf10_hdf5_plt_cnt'
-PATH_TO_OUTPUT = '/home/bweinhold/Auswertung/2D_Analysis/2D_Tracers/data/Simulations/S15_Ritter_hf10/1ktr_oub_denseout'
+PATH_TO_OUTPUT = '/home/bweinhold/Auswertung/2D_Analysis/2D_Tracers/data/Simulations/S15_Ritter_hf10/test_mem_newfiles'
 PATH_TO_PROGFILE = '/home/bweinhold/Auswertung/2D_Analysis/2D_Tracers/data/Progenitors/S15_NuGrid_log423.data'
 
 #HeS_net
@@ -36,8 +36,9 @@ PATH_TO_PROGFILE = '/home/bweinhold/Auswertung/2D_Analysis/2D_Tracers/data/Proge
 # Get paths for Snapshots
 PLT_FILES = sorted(glob(PATH_TO_PLTFILES + "*", recursive=False))#[:793]
 
-# Arbitrary Message to run.log
-ARB_MESSAGE = '1ktr runs new output'
+# Logging 
+ARB_MESSAGE = '1ktr runs new output'                            # Arbitrary Message to run.log
+LOG_EVERY = 120#s                                               # Interval in which a progress bar will be printed into run.log
 
 # Integration
 DIRECTION = 'backward'                                          # 'forward' or 'backward' - time direction of integration
@@ -52,7 +53,7 @@ MAXTEMP_TRACER = 1e10 #[K]                                      # temps in K
 NSE_TEMP = 5.8e9 #[K]                                           # if tracer reaches NSE its written into the header
 
 # Tracer placement
-PLACEMENT_METHOD = 'PosWithDens'                                        # 'PosWithDens' or 'FromFile', see README
+PLACEMENT_METHOD = 'FromFile'                                        # 'PosWithDens' or 'FromFile', see README
 NUM_TRACERS = 1000                                              # if PosWithDens: number of tracers to place (duh?!)                
 ONLY_UNBOUND = True                                             # if PosWithDens: only place tracers in ejected areas
 MAX_TEMP_PLACE = 7e9                                           # if backwards: Dont place tracers above 

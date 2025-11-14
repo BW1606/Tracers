@@ -57,24 +57,24 @@ tracer_entries_units = {'t': 's',
                         'eanux': 'MeV',
                         }
 
-tracer_entries_fmt={'t': '%.10f',
+tracer_entries_fmt={'t': '%.8f',
                     'x': '%.14e',
                     'y': '%.14e',
-                    'r': '%.6e', 
-                    'dens': '%.6e',
-                    'ye' : '%.4f',
-                    'temp': '%.6e',
-                    'entr': '%.4f',
-                    'velx': '%.6e',
-                    'vely': '%.6e',
-                    'lnue': '%.6e',
-                    'lnua': '%.6e',
-                    'lnux': '%.6e',
-                    'lanux': '%.6e',
-                    'enue': '%.6e',
-                    'enua': '%.6e',
-                    'enux': '%.6e',
-                    'eanux': '%.6e',
+                    'r': '%.14e', 
+                    'dens': '%.14e',
+                    'ye' : '%.8f',
+                    'temp': '%.14e',
+                    'entr': '%.8f',
+                    'velx': '%.14e',
+                    'vely': '%.14e',
+                    'lnue': '%.14e',
+                    'lnua': '%.14e',
+                    'lnux': '%.14e',
+                    'lanux': '%.14e',
+                    'enue': '%.14e',
+                    'enua': '%.14e',
+                    'enux': '%.14e',
+                    'eanux': '%.14e',
                     'ejected': '%d'
                     }
 
@@ -82,9 +82,9 @@ tracer_entries_fmt={'t': '%.10f',
 
 def fmt_width(fmt):
     if fmt.endswith('e'):
-        return 12
+        return 20
     elif fmt.endswith('f'):
-        return 5
+        return 9
     elif fmt.endswith('d'):
         return 1
     else:
@@ -252,6 +252,6 @@ def write_to_tracer_file(times, positions, keys, data_dict, tracer_entries, tr_i
     entry_fmt_list = [tracer_entries_fmt[entry] for entry in ['t','x','y'] + tracer_entries]
     
     # --- write file ---
-    filename = os.path.join(output_dir, f'tracer{str(tr_id).zfill(5)}.dat')
+    filename = os.path.join(output_dir, f'tracers/tracer{str(tr_id).zfill(5)}.dat')
     with open(filename, 'a') as f:
         np.savetxt(f, chunk_tracer_dat_array, fmt=entry_fmt_list, comments='')
