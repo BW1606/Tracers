@@ -19,7 +19,7 @@ from config import PATH_TO_OUTPUT, ONLY_UNBOUND, MAX_DENS_PLACE, MAX_TEMP_PLACE,
 
 # -------------- POSITION PROPORTIONAL TO DENSITY -----------------------------
 
-def PosFromDens_Bene_steps(snap, ptN):
+def PosFromDens_blockbased(snap, ptN):
     """
     Place tracer particles in a FLASH snapshot with increased density
     in regions where |Ye - 0.5| > 0.02, 0.04, 0.06 (factor 4, 8, 16).

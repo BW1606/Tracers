@@ -16,6 +16,7 @@
 import traceback, time
 import numpy as np
 import multiprocessing as mp
+import threading
 import time
 from scipy.integrate import solve_ivp
 import psutil
@@ -81,7 +82,7 @@ def integrate_chunk(chunk_args):
         Logs progress and returns new positions and event lists.
         """
         # Get active tracer IDs
-        active_tracer_ids = np.where(MP_arrays[0])[0]  # MP_arrays[0] is still_calc
+        active_tracer_ids = np.where(MP_arrays[0])[0]
         n_tasks = len(active_tracer_ids)
         new_positions = np.full((len(startpos), 2), np.nan)
         oob_list, failed_list = [], []
@@ -106,14 +107,30 @@ def integrate_chunk(chunk_args):
             for tr_id in active_tracer_ids
         ]
 
-        # Calculate logging interval (log 10 times max)
-        log_interval = max(1, n_tasks // 10)
+        # Chunk size for imap_unordered
         chunksize = max(1, n_tasks // (num_cpus * 4))
-        
-        #TODO: check if this logging works 
+
+        # --- HEARTBEAT LOGGER SETUP ---
         start_time = time.time()
-        last_log = start_time
-        log_interval_sec = LOG_EVERY
+        LOG_INTERVAL = LOG_EVERY
+        progress_counter = {"i": 0}   # Mutable so heartbeat thread can read it
+        stop_flag = {"stop": False}
+
+        def heartbeat():
+            """Logs progress every LOG_INTERVAL seconds independently of task completion."""
+            while not stop_flag["stop"]:
+                time.sleep(LOG_INTERVAL)
+                i = progress_counter["i"]
+                elapsed = time.time() - start_time
+                progress_bar = create_progress_bar(i, n_tasks)
+                write_log(
+                    output_dir,
+                    f"     Chunk progress : {progress_bar}"
+                )
+
+        # Start heartbeat thread
+        hb_thread = threading.Thread(target=heartbeat, daemon=True)
+        hb_thread.start()
 
         try:
             # Process tracers in parallel
@@ -122,6 +139,9 @@ def integrate_chunk(chunk_args):
                     pool.imap_unordered(_integrate_single_tracer_wrapper, task_args, chunksize=chunksize),
                     start=1
                 ):
+                    # Update progress for heartbeat thread
+                    progress_counter["i"] = i
+
                     # --- Process results ---
                     if isinstance(res, Exception):
                         failed_list.append(("unknown", repr(res)))
@@ -131,24 +151,92 @@ def integrate_chunk(chunk_args):
                         oob_list.extend(oob_events)
                         failed_list.extend(fail_events)
 
-                    # --- Time-based progress logging ---
-                    now = time.time()
-                    if now - last_log >= log_interval_sec or i == n_tasks:
-                        elapsed = now - start_time
-                        progress_bar = create_progress_bar(i, n_tasks)
-                        write_log(
-                            output_dir,
-                            f"     Chunk progress: {progress_bar}  ({i}/{n_tasks} tasks, elapsed {elapsed/60:.1f} min)"
-                        )
-                        last_log = now
-
         except Exception as e:
             err_msg = ''.join(traceback.format_exception(type(e), e, e.__traceback__))
             write_log(output_dir, f"[ERROR] Exception in parallel pool: {err_msg}")
             raise
 
+        finally:
+            # Stop heartbeat and wait for it
+            stop_flag["stop"] = True
+            hb_thread.join(timeout=1)
+
         write_log(output_dir, "All tracer integrations completed successfully.")
         return new_positions, oob_list, failed_list
+
+    # def integrate_tracers_parallel():
+    #     """
+    #     Integrates all active tracers in parallel using multiprocessing.
+    #     Logs progress and returns new positions and event lists.
+    #     """
+    #     # Get active tracer IDs
+    #     active_tracer_ids = np.where(MP_arrays[0])[0]  # MP_arrays[0] is still_calc
+    #     n_tasks = len(active_tracer_ids)
+    #     new_positions = np.full((len(startpos), 2), np.nan)
+    #     oob_list, failed_list = [], []
+
+    #     write_log(output_dir, f"Starting parallel integration of {n_tasks} tracers...")
+
+    #     # Prepare argument tuples for each tracer
+    #     task_args = [
+    #         (
+    #             tr_id,
+    #             startpos[tr_id],
+    #             times_chunk,
+    #             snapshots_meta,
+    #             sgn,
+    #             keys,
+    #             tracer_entries,
+    #             solve_ivp_args,
+    #             MP_arrays,
+    #             output_dir,
+    #             time_limit
+    #         )
+    #         for tr_id in active_tracer_ids
+    #     ]
+
+    #     # Calculate logging interval (log 10 times max)
+    #     chunksize = max(1, n_tasks // (num_cpus * 4))
+        
+    #     #TODO: check if this logging works 
+    #     start_time = time.time()
+    #     last_log = start_time
+    #     log_interval_sec = LOG_EVERY
+
+    #     try:
+    #         # Process tracers in parallel
+    #         with mp.Pool(processes=num_cpus) as pool:
+    #             for i, res in enumerate(
+    #                 pool.imap_unordered(_integrate_single_tracer_wrapper, task_args, chunksize=chunksize),
+    #                 start=1
+    #             ):
+    #                 # --- Process results ---
+    #                 if isinstance(res, Exception):
+    #                     failed_list.append(("unknown", repr(res)))
+    #                 else:
+    #                     tr_pos, oob_events, fail_events, tr_id = res
+    #                     new_positions[tr_id] = tr_pos
+    #                     oob_list.extend(oob_events)
+    #                     failed_list.extend(fail_events)
+
+    #                 # --- Time-based progress logging ---
+    #                 now = time.time()
+    #                 if now - last_log >= log_interval_sec or i == n_tasks:
+    #                     elapsed = now - start_time
+    #                     progress_bar = create_progress_bar(i, n_tasks)
+    #                     write_log(
+    #                         output_dir,
+    #                         f"     Chunk progress: {progress_bar}"
+    #                     )
+    #                     last_log = now
+
+    #     except Exception as e:
+    #         err_msg = ''.join(traceback.format_exception(type(e), e, e.__traceback__))
+    #         write_log(output_dir, f"[ERROR] Exception in parallel pool: {err_msg}")
+    #         raise
+
+    #     write_log(output_dir, "All tracer integrations completed successfully.")
+    #     return new_positions, oob_list, failed_list
 
     try:
         active_tracer_number = len(np.where(MP_arrays[0])[0])

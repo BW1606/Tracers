@@ -19,7 +19,7 @@ from datetime import datetime
 #------- custom modules --------------------------
 from config import *
 from src.utils import write_log, log_used_params, calc_seeds
-from src.tracer_placement import PosFromDens_Bene_steps, PosFromFile
+from src.tracer_placement import PosFromDens_blockbased, PosFromFile
 from src.tracer_integration import sgn, integrate_chunk
 from src.tracer_files import ensure_ascending_time_order_nse_flag, write_all_headers_parallel, tracer_entries, keys
 
@@ -64,7 +64,7 @@ if __name__ == "__main__":
     if DIRECTION == 'backward':
         intr_start = Snap.Snapshot2D(PLT_FILES[sgn], keys=keys)
         if PLACEMENT_METHOD == 'PosWithDens':
-            init_x, init_y, init_mass = PosFromDens_Bene_steps(intr_start, NUM_TRACERS)
+            init_x, init_y, init_mass = PosFromDens_blockbased(intr_start, NUM_TRACERS)
             # init_x, init_y, init_mass = PosFromDens_Bene(intr_start, num_tracers, only_unbound=only_unbound, maxDens=max_dens)
         elif PLACEMENT_METHOD == 'FromFile':
             init_x, init_y, init_mass = PosFromFile(PATH_TO_TRACERS_START)
@@ -74,7 +74,7 @@ if __name__ == "__main__":
     elif DIRECTION == 'forward':
         intr_start = Snap.Snapshot2D(PLT_FILES[0], keys=keys)
         if PLACEMENT_METHOD == 'PosWithDens':
-            init_x, init_y, init_mass = PosFromDens_Bene_steps(intr_start,NUM_TRACERS)
+            init_x, init_y, init_mass = PosFromDens_blockbased(intr_start,NUM_TRACERS)
         elif PLACEMENT_METHOD == 'FromFile':
             init_x, init_y, init_mass = PosFromFile(PATH_TO_TRACERS_START)
         else:
@@ -101,7 +101,7 @@ if __name__ == "__main__":
 
     # --------INITIALIZE AND WRITE HEADERS INTO TRACER FILES -------
 
-    write_log(PATH_TO_OUTPUT, f"Starting to write the tracer files - this will take a while :)")
+    write_log(PATH_TO_OUTPUT, f"Creating tracer files - this will take a while :)")
     
     t_pre_trfile_creation = time()
     write_all_headers_parallel(init_mass, path_to_tracers, num_cpus=num_cpus)

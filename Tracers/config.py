@@ -13,13 +13,13 @@ import numpy as np
 
 """
 TODO:
-    - adjusted x,y fmt for more decimals - have to adjust header creation? YES
     - run chunking vs onechunk test (correctly communicate starting times and pos between chunks?)
+    - implement current flash snapshot2D in greater hierarchy
 """
 
 # S15
 PATH_TO_PLTFILES = '/home/template_scripts/FLASH/2D_simulation/S15_Ritter_hf10_2d/output/S15_Ritter_hf10_hdf5_plt_cnt'
-PATH_TO_OUTPUT = '/home/bweinhold/Auswertung/2D_Analysis/2D_Tracers/data/Simulations/S15_Ritter_hf10/test'
+PATH_TO_OUTPUT = '/home/bweinhold/Auswertung/2D_Analysis/2D_Tracers/data/Simulations/S15_Ritter_hf10/10ktr_ouB_new_oc'
 PATH_TO_PROGFILE = '/home/bweinhold/Auswertung/2D_Analysis/2D_Tracers/data/Progenitors/S15_NuGrid_log423.data'
 
 #HeS_net
@@ -37,7 +37,7 @@ PATH_TO_PROGFILE = '/home/bweinhold/Auswertung/2D_Analysis/2D_Tracers/data/Proge
 PLT_FILES = sorted(glob(PATH_TO_PLTFILES + "*", recursive=False))#[:793]
 
 # Logging 
-ARB_MESSAGE = ''                            # Arbitrary Message to run.log
+ARB_MESSAGE = 'test new heartbeat logging'                            # Arbitrary Message to run.log
 LOG_EVERY = 120#s                                               # Interval in which a progress bar will be printed into run.log
 
 # Integration
@@ -53,8 +53,8 @@ MAXTEMP_TRACER = 1e10 #[K]                                      # temps in K
 NSE_TEMP = 5.8e9 #[K]                                           # if tracer reaches NSE its written into the header
 
 # Tracer placement
-PLACEMENT_METHOD = 'FromFile'                                        # 'PosWithDens' or 'FromFile', see README
-NUM_TRACERS = 1000                                              # if PosWithDens: number of tracers to place (duh?!)                
+PLACEMENT_METHOD = 'PosWithDens'                                        # 'PosWithDens' or 'FromFile', see README
+NUM_TRACERS = 10000                                              # if PosWithDens: number of tracers to place (duh?!)                
 ONLY_UNBOUND = True                                             # if PosWithDens: only place tracers in ejected areas
 MAX_TEMP_PLACE = 7e9                                           # if backwards: Dont place tracers above 
 YE_STEPS = True                                                 # If backwards: increases tracer resolution in nu-influenced areas

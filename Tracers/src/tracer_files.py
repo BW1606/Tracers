@@ -149,7 +149,6 @@ def ensure_ascending_time_order_nse_flag(reached_NSE):
     """
     files = sorted(glob(os.path.join(PATH_TO_OUTPUT, "tracers/tracer*.dat")))
 
-    print(files)
 
     for file_path in files:
         tracer_num = int(os.path.basename(file_path).replace("tracer", "").replace(".dat", ""))
@@ -191,7 +190,6 @@ def ensure_ascending_time_order_nse_flag(reached_NSE):
         # Reverse if time is descending
         if data[0, 0] > data[-1, 0]:
             data = data[::-1]
-            print(f'reversing time order of tracer {file_path}')
 
         # Write back to the same file
         with open(file_path, "w") as f:

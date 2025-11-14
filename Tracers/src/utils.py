@@ -53,9 +53,11 @@ def log_used_params():
         write_log(PATH_TO_OUTPUT, f"       ye_steps = {YE_STEPS}")
         write_log(PATH_TO_OUTPUT, f"       only_unbound = {ONLY_UNBOUND}")
         if ONLY_UNBOUND==False:
-            write_log(PATH_TO_OUTPUT, f"       max_dens = {MAX_DENS_PLACE:.1e}")
+            write_log(PATH_TO_OUTPUT, f"       max_dens = {MAX_DENS_PLACE:.1e} g/cm³")
+    if PLACEMENT_METHOD == 'FromFile':
+        write_log(PATH_TO_OUTPUT, f"       path to start positions: {PATH_TO_TRACERS_START}")
     
-    write_log(PATH_TO_OUTPUT, f'       only_until_maxTemp = {ONLY_UNTIL_MAXTEMP:.1e}')
+    write_log(PATH_TO_OUTPUT, f'       only_until_maxTemp = {ONLY_UNTIL_MAXTEMP}')
     if ONLY_UNTIL_MAXTEMP:
         write_log(PATH_TO_OUTPUT, f'       max_temp = {MAXTEMP_TRACER/1e9:.1e} GK')
 
@@ -193,7 +195,7 @@ def load_snapshots_into_shm(file_list, td_vars_keys, sgn):
             progress_bar = create_progress_bar(i, n_files)
             write_log(
                 PATH_TO_OUTPUT,
-                f"     Snapshot loading progress: {progress_bar}  ({i}/{n_files} files, elapsed {elapsed/60:.1f} min)"
+                f"     Snapshot loading progress: {progress_bar}"
             )
             last_log = now
     
