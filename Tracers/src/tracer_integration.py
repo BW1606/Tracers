@@ -161,7 +161,7 @@ def integrate_chunk(chunk_args):
         new_positions, oob_events, failed_events = integrate_tracers_parallel()
         calc_time_chunk = time.time() - t1
 
-        write_log(output_dir, f"Integrated chunk in {calc_time_chunk:.2f}s, time per tracer per snapshot: {calc_time_chunk/(CHUNK_SIZE * active_tracer_number):.4f}s")
+        write_log(output_dir, f"Integrated chunk in {calc_time_chunk:.2f}s, avg. time per tracer per snapshot: {calc_time_chunk/(CHUNK_SIZE * active_tracer_number):.4f}s")
 
         # Return final positions and events
         return np.array(new_positions), oob_events, failed_events
@@ -418,7 +418,7 @@ def integrate_single_tracer(tr_id, start_pos, times_chunk, snapshots_meta, sgn, 
             x = positions[0, i]
             y = positions[1, i]
             snap = snapshots[i]
-            print(f't_eval t: {t}, snapshot t: {snap.simtime}')
+            #print(f't_eval t: {t}, snapshot t: {snap.simtime}')
             for key in keys:
                 sampled[key][i] = snap.getQuantAtPos(key, x, y, tr_id)
         return sampled
@@ -467,12 +467,12 @@ def integrate_single_tracer(tr_id, start_pos, times_chunk, snapshots_meta, sgn, 
             
             # Final memory check before return
             mem_end = process.memory_info().rss / 1024**2  # MB
-            write_log(output_dir, 
-                      f"Tracer {tr_id} (PID {pid}) MEMORY: "
-                      f"Start={mem_start:.1f}MB, "
-                      f"AfterReconstruct={mem_after_reconstruct:.1f}MB, "
-                      f"End={mem_end:.1f}MB, "
-                      f"Delta={mem_end-mem_start:.1f}MB")
+            # write_log(output_dir, 
+            #           f"Tracer {tr_id} (PID {pid}) MEMORY: "
+            #           f"Start={mem_start:.1f}MB, "
+            #           f"AfterReconstruct={mem_after_reconstruct:.1f}MB, "
+            #           f"End={mem_end:.1f}MB, "
+            #           f"Delta={mem_end-mem_start:.1f}MB")
             
             return np.array([result.y[0][-1], result.y[1][-1]]), local_oob_events, [], tr_id
 
@@ -496,12 +496,12 @@ def integrate_single_tracer(tr_id, start_pos, times_chunk, snapshots_meta, sgn, 
         mem_end = process.memory_info().rss / 1024**2  # MB
         
         # Log timing and memory information
-        write_log(output_dir, 
-                  f"Tracer {tr_id} (PID {pid}) MEMORY: "
-                  f"Start={mem_start:.1f}MB, "
-                  f"AfterReconstruct={mem_after_reconstruct:.1f}MB, "
-                  f"End={mem_end:.1f}MB, "
-                  f"Delta={mem_end-mem_start:.1f}MB")
+        # write_log(output_dir, 
+        #           f"Tracer {tr_id} (PID {pid}) MEMORY: "
+        #           f"Start={mem_start:.1f}MB, "
+        #           f"AfterReconstruct={mem_after_reconstruct:.1f}MB, "
+        #           f"End={mem_end:.1f}MB, "
+        #           f"Delta={mem_end-mem_start:.1f}MB")
 
         # Log timing information for selected tracers
         # if tr_id % 1000 == 0:
@@ -522,10 +522,10 @@ def integrate_single_tracer(tr_id, start_pos, times_chunk, snapshots_meta, sgn, 
         still_calc[tr_id] = False
         
         # Memory check on error
-        mem_end = process.memory_info().rss / 1024**2  # MB
-        write_log(output_dir, 
-                  f"Tracer {tr_id} (PID {pid}) MEMORY AT ERROR: "
-                  f"Start={mem_start:.1f}MB, End={mem_end:.1f}MB, Delta={mem_end-mem_start:.1f}MB")
+        # mem_end = process.memory_info().rss / 1024**2  # MB
+        # write_log(output_dir, 
+        #           f"Tracer {tr_id} (PID {pid}) MEMORY AT ERROR: "
+        #           f"Start={mem_start:.1f}MB, End={mem_end:.1f}MB, Delta={mem_end-mem_start:.1f}MB")
         
         return np.array([np.nan, np.nan]), [], [f"❌ Tracer {tr_id} failed: {e}"], tr_id
 

@@ -18,8 +18,7 @@ from datetime import datetime
 
 #------- custom modules --------------------------
 from config import *
-from src.utils import write_log, log_used_params
-from src.tracer_files import keys 
+from src.utils import write_log, log_used_params, calc_seeds
 from src.tracer_placement import PosFromDens_Bene_steps, PosFromFile
 from src.tracer_integration import sgn, integrate_chunk
 from src.tracer_files import ensure_ascending_time_order_nse_flag, write_all_headers_parallel, tracer_entries, keys
@@ -185,35 +184,10 @@ if __name__ == "__main__":
     #if backwards - reverse time order in tracer file to ascending
     if DIRECTION == 'backward':
         write_log(PATH_TO_OUTPUT, f'Assuring ascending time order for nuclear network')
-        ensure_ascending_time_order_nse_flag(PATH_TO_OUTPUT, reached_NSE)
+        ensure_ascending_time_order_nse_flag(reached_NSE)
 
     #if calc_seeds - calculate initial composition of the tracers from porgenitor file
     if CALC_SEEDS:
-        write_log(PATH_TO_OUTPUT, f'Starting to calculate initial compositions of tracers')
-        seeds_dir = os.path.join(PATH_TO_OUTPUT, 'seeds')
-        if not os.path.exists(seeds_dir):
-            os.makedirs(seeds_dir)  # create the seeds directory
-        
-        tracers = sorted(glob(os.path.join(PATH_TO_OUTPUT, "tracer*")))
-
-        if PROG_TYPE == 'NuGrid':
-            progenitor = Prog.Progenitor_NuGrid(path_to_progfile=PATH_TO_PROGFILE)
-        elif PROG_TYPE == 'FLASH':
-            progenitor = Prog.Progenitor_FLASH(path_to_progfile=PATH_TO_PROGFILE)
-
-        for tr_id, tracer in enumerate(tracers):
-            tr_dat = np.genfromtxt(tracer, skip_header=3, usecols=[0, 1, 2])
-            t_min_idx = np.argmin(tr_dat[:,0])
-            tr_init_radius = np.sqrt(tr_dat[t_min_idx, 1]**2 + tr_dat[t_min_idx, 2]**2)
-            
-            massfrac_dict = progenitor.massfractions_of_r(tr_init_radius)
-
-            data = np.array([[info['A'], info['Z'], info['X']] for info in massfrac_dict.values()])
-            data = data[data[:,0].argsort()]
-
-            filename = os.path.join(PATH_TO_OUTPUT, 'seeds', f'seed{str(tr_id).zfill(5)}.txt')
-            np.savetxt(filename, data, fmt="%d\t%d\t%.6e", header="# A\tZ\tX\n# ---------------", comments='')
-        
-        write_log(PATH_TO_OUTPUT, f'Calculated and saved the initial compositions of the tracers')
+        calc_seeds()
 
     write_log(PATH_TO_OUTPUT, f'Tracer calculation complete :) - total time {(time()-t0)/60:.2f} minutes.')

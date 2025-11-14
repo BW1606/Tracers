@@ -15,6 +15,7 @@ from multiprocessing.shared_memory import SharedMemory
 import time
 
 import src.Snapshot2D as Snap
+import src.Progenitors as Prog
 
 from config import *
 
@@ -29,7 +30,7 @@ def write_log(output_dir, msg):
         f.write(f'[{timestamp}] {msg}\n')
         f.flush()
 
-def create_progress_bar(completed, total, bar_length=40):
+def create_progress_bar(completed, total, bar_length=20):
     """Create a text-based progress bar"""
     percent = (completed / total) * 100
     filled = int(bar_length * completed / total)
@@ -84,6 +85,36 @@ def L_from_f(f, r):
     f [B/s cm^2], r [cm] -> L [B/s]
     """
     return 4 * np.pi * r**2 * f
+
+# ------------------- CALCULATE INITIAL COMPOSITION ------------------------
+
+def calc_seeds():
+    write_log(PATH_TO_OUTPUT, f'Starting to calculate initial compositions of tracers')
+    seeds_dir = os.path.join(PATH_TO_OUTPUT, 'seeds')
+    if not os.path.exists(seeds_dir):
+        os.makedirs(seeds_dir)  # create the seeds directory
+    
+    tracers = sorted(glob(os.path.join(PATH_TO_OUTPUT, "tracers/tracer*")))
+
+    if PROG_TYPE == 'NuGrid':
+        progenitor = Prog.Progenitor_NuGrid(path_to_progfile=PATH_TO_PROGFILE)
+    elif PROG_TYPE == 'FLASH':
+        progenitor = Prog.Progenitor_FLASH(path_to_progfile=PATH_TO_PROGFILE)
+
+    for tr_id, tracer in enumerate(tracers):
+        tr_dat = np.genfromtxt(tracer, skip_header=3, usecols=[0, 1, 2])
+        t_min_idx = np.argmin(tr_dat[:,0])
+        tr_init_radius = np.sqrt(tr_dat[t_min_idx, 1]**2 + tr_dat[t_min_idx, 2]**2)
+        
+        massfrac_dict = progenitor.massfractions_of_r(tr_init_radius)
+
+        data = np.array([[info['A'], info['Z'], info['X']] for info in massfrac_dict.values()])
+        data = data[data[:,0].argsort()]
+
+        filename = os.path.join(PATH_TO_OUTPUT, 'seeds', f'seed{str(tr_id).zfill(5)}.txt')
+        np.savetxt(filename, data, fmt="%d\t%d\t%.6e", header="# A\tZ\tX\n# ---------------", comments='')
+    
+    write_log(PATH_TO_OUTPUT, f'Calculated and saved the initial compositions of the tracers')
 
 
 # ----------------------- SHARED MEMORY ------------------------------------

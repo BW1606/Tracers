@@ -14,7 +14,7 @@ from glob import glob
 import numpy as np
 
 from .utils import is_ejected, L_from_f
-from config import WITH_NEUTRINOS
+from config import WITH_NEUTRINOS, PATH_TO_OUTPUT
 
 
 
@@ -84,7 +84,7 @@ def fmt_width(fmt):
     if fmt.endswith('e'):
         return 20
     elif fmt.endswith('f'):
-        return 9
+        return 10
     elif fmt.endswith('d'):
         return 1
     else:
@@ -141,13 +141,15 @@ def write_all_headers_parallel(init_mass, path_to_tracers, num_cpus):
 
 #-------------- ENSURE ASCENDING TIME-ORDER ---------------------------------
 
-def ensure_ascending_time_order_nse_flag(path_to_tracers, reached_NSE):
+def ensure_ascending_time_order_nse_flag(reached_NSE):
     """
     Ensure every tracer file is monotonically increasing in time. (WinNet needs ascending times)
     Reverses data if necessary; keeps header intact.
     also appends ', reached_NSE: True/False' to the mass header line.
     """
-    files = sorted(glob(os.path.join(path_to_tracers, "/tracers/tracer*.dat")))
+    files = sorted(glob(os.path.join(PATH_TO_OUTPUT, "tracers/tracer*.dat")))
+
+    print(files)
 
     for file_path in files:
         tracer_num = int(os.path.basename(file_path).replace("tracer", "").replace(".dat", ""))
@@ -189,6 +191,7 @@ def ensure_ascending_time_order_nse_flag(path_to_tracers, reached_NSE):
         # Reverse if time is descending
         if data[0, 0] > data[-1, 0]:
             data = data[::-1]
+            print(f'reversing time order of tracer {file_path}')
 
         # Write back to the same file
         with open(file_path, "w") as f:

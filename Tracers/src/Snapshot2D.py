@@ -71,30 +71,72 @@ class Snapshot2D:
             self.td_vars = {}
             for key in keys:
                 self.td_vars[key] = np.squeeze(f[key][:][leaf_mask])
+            
+
+        self._precompute_cell_coords()
 
 
-    def cellCoords(self, blockID,tr_id =None,with_edges = False):
+    # def cellCoords_old(self, blockID,tr_id =None,with_edges = False):
 
-        xmin = self.bbox[blockID, 0, 0]
-        xmax = self.bbox[blockID, 0, 1]
-        ymin = self.bbox[blockID, 1, 0]
-        ymax = self.bbox[blockID, 1, 1]
+    #     xmin = self.bbox[blockID, 0, 0]
+    #     xmax = self.bbox[blockID, 0, 1]
+    #     ymin = self.bbox[blockID, 1, 0]
+    #     ymax = self.bbox[blockID, 1, 1]
 
-        delta_x = (xmax - xmin) / self.cells_per_block_x
+    #     delta_x = (xmax - xmin) / self.cells_per_block_x
+    #     delta_y = np.abs(ymax - ymin) / self.cells_per_block_y
+
+    #     cell_centers_x = xmin + (np.arange(self.cells_per_block_x) + 0.5) * delta_x
+    #     y_lower = np.minimum(ymin, ymax)  # Ensure ascending order
+    #     cell_centers_y = y_lower + (np.arange(self.cells_per_block_y) + 0.5) * delta_y
+
+    #     if with_edges:
+    #         x_low = xmin + (np.arange(self.cells_per_block_x)) * delta_x
+    #         x_high = xmin + (np.arange(self.cells_per_block_x)) * delta_x + delta_x
+    #         y_low = ymin + (np.arange(self.cells_per_block_y)) * delta_y
+    #         y_high = ymin + (np.arange(self.cells_per_block_y)) * delta_y + delta_y
+    #         return cell_centers_x, cell_centers_y,x_low, x_high, y_low, y_high
+
+    #     return cell_centers_x, cell_centers_y
+
+    def _precompute_cell_coords(self):
+        """Precompute cell centers and edges for all blocks (vectorized)."""
+        n_blocks = self.bbox.shape[0]
+        
+        # Extract all bounding boxes at once
+        xmin = self.bbox[:, 0, 0]  # shape: (n_blocks,)
+        xmax = self.bbox[:, 0, 1]
+        ymin = self.bbox[:, 1, 0]
+        ymax = self.bbox[:, 1, 1]
+        
+        # Compute deltas for all blocks
+        delta_x = (xmax - xmin) / self.cells_per_block_x  # shape: (n_blocks,)
         delta_y = np.abs(ymax - ymin) / self.cells_per_block_y
-
-        cell_centers_x = xmin + (np.arange(self.cells_per_block_x) + 0.5) * delta_x
+        
+        # Create cell index arrays
+        cell_indices_x = np.arange(self.cells_per_block_x)  # shape: (cells_per_block_x,)
+        cell_indices_y = np.arange(self.cells_per_block_y)
+        
+        # Vectorized computation for all blocks
+        # Broadcasting: (n_blocks, 1) + (1, cells_per_block) = (n_blocks, cells_per_block)
+        self.cell_centers_x = xmin[:, np.newaxis] + (cell_indices_x + 0.5) * delta_x[:, np.newaxis]
+        
         y_lower = np.minimum(ymin, ymax)  # Ensure ascending order
-        cell_centers_y = y_lower + (np.arange(self.cells_per_block_y) + 0.5) * delta_y
+        self.cell_centers_y = y_lower[:, np.newaxis] + (cell_indices_y + 0.5) * delta_y[:, np.newaxis]
+        
+        # Cell edges
+        self.x_low = xmin[:, np.newaxis] + cell_indices_x * delta_x[:, np.newaxis]
+        self.x_high = self.x_low + delta_x[:, np.newaxis]
+        self.y_low = ymin[:, np.newaxis] + cell_indices_y * delta_y[:, np.newaxis]
+        self.y_high = self.y_low + delta_y[:, np.newaxis]
 
+    def cellCoords(self, blockID, tr_id=None, with_edges=False):
+        """Return precomputed cell coordinates for a block."""
         if with_edges:
-            x_low = xmin + (np.arange(self.cells_per_block_x)) * delta_x
-            x_high = xmin + (np.arange(self.cells_per_block_x)) * delta_x + delta_x
-            y_low = ymin + (np.arange(self.cells_per_block_y)) * delta_y
-            y_high = ymin + (np.arange(self.cells_per_block_y)) * delta_y + delta_y
-            return cell_centers_x, cell_centers_y,x_low, x_high, y_low, y_high
-
-        return cell_centers_x, cell_centers_y
+            return (self.cell_centers_x[blockID], self.cell_centers_y[blockID],
+                    self.x_low[blockID], self.x_high[blockID],
+                    self.y_low[blockID], self.y_high[blockID])
+        return self.cell_centers_x[blockID], self.cell_centers_y[blockID]
 
     def cellVolumes(self, blockID):
         """
@@ -366,9 +408,12 @@ class Snapshot2D:
 # testpath = '/home/bweinhold/S15_Ritter/S15_Ritter_hf10_hdf5_plt_cnt_1170'
 # testsnap = Snapshot2D(testpath, ["dens", "ye"], True)
 
-# print(testsnap.bbox[1][:2])
+# test_Block = 10
 
-# print(testsnap.cellCoords(1))
+# print(testsnap.cellCoords(test_Block))
+
+# print(testsnap.cellCoords_old(test_Block))
+
 
 # print(testsnap.findBlock(1.991275e+08, -2.230449e+08,0))
 # print(testsnap.td_vars['ye'][144])
