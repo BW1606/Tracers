@@ -70,7 +70,7 @@ Tracers/
 
 ##  Workflow
 
-![Workflow Diagram](./workflow_diag.png)
+![Workflow Diagram](./2D_workflow.png)
 
 ## Usage
 

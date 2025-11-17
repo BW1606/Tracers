@@ -550,7 +550,7 @@ def integrate_single_tracer(tr_id, start_pos, times_chunk, snapshots_meta, sgn, 
 
             # Sample and write in-bounds variables
             vars_sampled = sample_vars(pos_eval, keys=keys, snapshots=snapshots, t_eval=t_eval)
-            write_to_tracer_file(t_eval, pos_eval, keys, vars_sampled, tracer_entries, tr_id, output_dir)
+            write_to_tracer_file(t_eval, pos_eval, keys, vars_sampled, tr_id)
             
             # Final memory check before return
             mem_end = process.memory_info().rss / 1024**2  # MB
@@ -576,7 +576,7 @@ def integrate_single_tracer(tr_id, start_pos, times_chunk, snapshots_meta, sgn, 
                     write_log(output_dir, f"Tracer {tr_id} reached max_temp and will be terminated")
 
         # Write tracer data to file
-        write_to_tracer_file(t_eval, pos_eval, keys, vars_sampled, tracer_entries, tr_id, output_dir)
+        write_to_tracer_file(t_eval, pos_eval, keys, vars_sampled, tr_id)
         t_post_writing = time.time()
 
         # Final memory check
