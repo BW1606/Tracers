@@ -19,11 +19,7 @@ from typing import List, Dict
 import numpy as np
 import pandas as pd
 from scipy.interpolate import interp1d
-from abc import ABC, abstractmethod
-from typing import Dict
-import numpy as np
-from scipy.interpolate import interp1d
-import pandas as pd
+
 
 class Progenitor(ABC):
     """

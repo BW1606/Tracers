@@ -17,13 +17,12 @@ from datetime import datetime
 
 #------- custom modules --------------------------
 from config import *
-from src.utils import write_log, log_used_params, calc_seeds
+from src.utils import write_log, log_used_params, calc_seeds, SnapshotsCls
 from src.tracer_placement import PosFromDens_blockbased, PosFromFile
 from src.tracer_integration import sgn, integrate_chunk
 from src.tracer_files import ensure_ascending_time_order_nse_flag, write_all_headers_parallel, tracer_entries, keys
 
-import src.Snapshot2D as Snap
-
+#import src.Snapshots as Snap
 
 
 if __name__ == "__main__":
@@ -60,7 +59,7 @@ if __name__ == "__main__":
     # ----------- PLACE TRACERS ACCORDING TO METHOD AND DIRECTION -----------
     match DIRECTION:
         case 'backward':
-            intr_start = Snap.Snapshot2D(PLT_FILES[sgn], keys=keys)
+            intr_start = SnapshotsCls(PLT_FILES[sgn], keys=keys)
             match PLACEMENT_METHOD:
                 case 'PosWithDens':
                     init_x, init_y, init_mass = PosFromDens_blockbased(intr_start, NUM_TRACERS)
@@ -72,7 +71,7 @@ if __name__ == "__main__":
                     sys.exit('Unknown tracer placement method. Exiting.')
         
         case 'forward':
-            intr_start = Snap.Snapshot2D(PLT_FILES[0], keys=keys)
+            intr_start = SnapshotsCls(PLT_FILES[0], keys=keys)
             match PLACEMENT_METHOD:
                 case 'PosWithDens':
                     init_x, init_y, init_mass = PosFromDens_blockbased(intr_start, NUM_TRACERS)

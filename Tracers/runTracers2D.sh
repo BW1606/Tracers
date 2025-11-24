@@ -6,7 +6,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=2
-#SBATCH --mem=20G
+#SBATCH --mem=8G
 ##SBATCH --time=3:00:00                           
 
 # Run your Python script with N processes internally

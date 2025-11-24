@@ -90,7 +90,6 @@ def fmt_width(fmt):
     else:
         return len(fmt)
 
-
 #------------------------ CREATING FILES -----------------------------
 
 # --- build header ---

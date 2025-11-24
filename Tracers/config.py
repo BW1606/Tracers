@@ -19,30 +19,32 @@ TODO:
 
 # S15
 PATH_TO_PLTFILES = '/home/template_scripts/FLASH/2D_simulation/S15_Ritter_hf10_2d/output/S15_Ritter_hf10_hdf5_plt_cnt'
-PATH_TO_OUTPUT = '/home/bweinhold/Auswertung/2D_Analysis/2D_Tracers/data/Simulations/S15_Ritter_hf10/test_pos_25_with_dye'
+PATH_TO_OUTPUT = '/home/bweinhold/Auswertung/2D_Analysis/2D_Tracers/data/Simulations/S15_Ritter_hf10/test_25_new'
 PATH_TO_PROGFILE = '/home/bweinhold/Auswertung/2D_Analysis/2D_Tracers/data/Progenitors/S15_NuGrid_log423.data'
+INPUT_FILE = 'FLASH'
 
 #HeS_net
 # PATH_TO_PLTFILES = '/home/guest/Bene/HeS_2D/HeS_net/HeS_rn16e_hdf5_plt_cnt_'
 # PATH_TO_OUTPUT = '/home/bweinhold/Auswertung/2D_Analysis/2D_Tracers/data/Simulations/HeS_BURN/10ktr_ouB_new'
 # PATH_TO_PROGFILE = '/home/template_scripts/FLASH/2D_simulation/HeS_s13.8/HeS_s13.8.1d'
+#INPUT_FILE = 'FLASH'
 
 #HeS_nonet
 # PATH_TO_PLTFILES = '/home/template_scripts/FLASH/2D_simulation/HeS_s13.8/HeS_hot/HeS_hot_hdf5_plt_cnt_'
 # PATH_TO_OUTPUT = '/home/bweinhold/Auswertung/2D_Analysis/2D_Tracers/data/Simulations/HeS_s13.8/1ktr_793'
 # PATH_TO_PROGFILE = '/home/template_scripts/FLASH/2D_simulation/HeS_s13.8/HeS_s13.8.1d'
-
+#INPUT_FILE = 'FLASH'
 
 # Get paths for Snapshots
 PLT_FILES = sorted(glob(PATH_TO_PLTFILES + "*", recursive=False))#[:793]
 
 # Logging 
-ARB_MESSAGE = 'tr25 with dye field to check for neutrino vs hydro/resolution mixing impact on ye'                            # Arbitrary Message to run.log
+ARB_MESSAGE = 'test logging, match cases, snap hierarchy'                            # Arbitrary Message to run.log
 LOG_EVERY = 120#s                                               # Interval in which a progress bar will be printed into run.log
 
 # Integration
 DIRECTION = 'backward'                                          # 'forward' or 'backward' - time direction of integration
-CHUNK_SIZE = 1300                                               # tracers are integrated throughout the simulation in chunks
+CHUNK_SIZE = 200                                               # tracers are integrated throughout the simulation in chunks
 RTOL, ATOL, MAXSTEP = 1e-2, 1e4, 1e-4                           # tolerances for solve_ivp/RKF5 - see README
 TIME_LIMIT = CHUNK_SIZE                                                # single tracer time limit to avoid convergance problems
 
@@ -54,7 +56,7 @@ NSE_TEMP = 5.8e9 #[K]                                           # if tracer reac
 
 # Tracer placement
 PLACEMENT_METHOD = 'FromFile'                                        # 'PosWithDens' or 'FromFile', see README
-NUM_TRACERS = 10000                                              # if PosWithDens: number of tracers to place (duh?!)                
+NUM_TRACERS = 1000                                              # if PosWithDens: number of tracers to place (duh?!)                
 ONLY_UNBOUND = True                                             # if PosWithDens: only place tracers in ejected areas
 MAX_TEMP_PLACE = 7e9                                           # if backwards: Dont place tracers above 
 YE_STEPS = True                                                 # If backwards: increases tracer resolution in nu-influenced areas

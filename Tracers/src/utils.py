@@ -10,17 +10,37 @@
 
 import os, psutil
 from datetime import datetime
-import numpy as np
+import numpy as npa
 from multiprocessing.shared_memory import SharedMemory
 import time
+import sys
 
-import src.Snapshot2D as Snap
+import src.Snapshots as Snap
 import src.Progenitors as Prog
 
 from config import *
 
-# ----------------------- LOGFILE WRITING --------------------------------------
+# -----------------WHAT KIND OF INPUT FILE??? -------------------------------
 
+match INPUT_FILE:
+    case 'FLASH':
+        SnapshotsCls = Snap.Snapshot2DFLASH
+    case _:
+        raise ValueError(f"Unknown INPUT_FILE={INPUT_FILE}")
+        sys.exit('Unknown input file. Exiting.')
+    
+
+match PROG_TYPE:
+    case 'NuGrid':
+        ProgCls = Prog.Progenitor_NuGrid
+    case 'FLASH':
+        ProgCls = Prog.Progenitor_FLASH
+    case _:
+        raise ValueError(f"Unknown Prog_TYPE={PROG_TYPE}")
+        sys.exit('Unknown progenitor type. Exiting.')
+    
+
+# ----------------------- LOGFILE WRITING --------------------------------------
 
 def write_log(output_dir, msg):
     """
@@ -138,10 +158,8 @@ def calc_seeds():
     
     tracers = sorted(glob(os.path.join(PATH_TO_OUTPUT, "tracers/tracer*")))
 
-    if PROG_TYPE == 'NuGrid':
-        progenitor = Prog.Progenitor_NuGrid(path_to_progfile=PATH_TO_PROGFILE)
-    elif PROG_TYPE == 'FLASH':
-        progenitor = Prog.Progenitor_FLASH(path_to_progfile=PATH_TO_PROGFILE)
+
+    progenitor = ProgCls(path_to_progfile=PATH_TO_PROGFILE)
 
     for tr_id, tracer in enumerate(tracers):
         tr_dat = np.genfromtxt(tracer, skip_header=3, usecols=[0, 1, 2])
@@ -160,41 +178,6 @@ def calc_seeds():
 
 
 # ----------------------- SHARED MEMORY ------------------------------------
-
-# def load_snapshots_into_shm(file_list, td_vars_keys, sgn):
-#     meta_list = []
-#     time_list = []
-#     shm_list = []
-
-#     write_log(PATH_TO_OUTPUT, "Reading in snapshots into shared memory...")
-#     t0 = time.time()
-
-#     prev_time = None
-
-#     for plt_path in file_list:
-
-#         snap = Snap.Snapshot2D(plt_path, td_vars_keys)
-#         snap_time = snap.currentSimTime()
-
-#         #check monotonicity of snapshots
-#         if prev_time is not None:
-#             if sgn * (snap_time - prev_time) <= 0:
-#                 print(f'Snapshot {plt_path} breaks time monotonicity of snapshots, skipping it')
-#                 continue
-        
-#         prev_time = snap_time
-#         time_list.append(snap.currentSimTime())
-
-#         # Automatically create SHM for all attributes
-#         snap_meta, snap_shms = create_shm_for_snapshot_generic(snap, td_vars_keys)
-#         meta_list.append(snap_meta)
-#         shm_list.extend(snap_shms)
-
-#     write_log(PATH_TO_OUTPUT, f'Chunk-times: {time_list[0]:.3f} - {time_list[-1]:.3f}s')
-#     write_log(PATH_TO_OUTPUT, f"Snapshots loaded in {time.time() - t0:.2f}s")
-#     process = psutil.Process(os.getpid())
-#     write_log(PATH_TO_OUTPUT, f"Current memory usage: {process.memory_info().rss / 1024**3:.2f} GB")
-#     return meta_list, time_list, shm_list
 
 def load_snapshots_into_shm(file_list, td_vars_keys, sgn):
     """
@@ -237,7 +220,7 @@ def load_snapshots_into_shm(file_list, td_vars_keys, sgn):
     prev_time = None
     
     for i, plt_path in enumerate(file_list, start=1):
-        snap = Snap.Snapshot2D(plt_path, td_vars_keys)
+        snap = SnapshotsCls(plt_path, td_vars_keys)
         snap_time = snap.currentSimTime()
         
         # Check monotonicity of snapshots
@@ -276,7 +259,7 @@ def load_snapshots_into_shm(file_list, td_vars_keys, sgn):
 
 def reconstruct_snapshots(meta_list):
     """Rebuild Snapshot2D objects from shared memory metadata."""
-    return [Snap.Snapshot2D.from_shm(snap_meta) for snap_meta in meta_list]
+    return [SnapshotsCls.from_shm(snap_meta) for snap_meta in meta_list]
 
 def create_shm_for_array(arr):
     """
