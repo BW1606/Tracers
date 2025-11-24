@@ -58,29 +58,33 @@ if __name__ == "__main__":
 
 
     # ----------- PLACE TRACERS ACCORDING TO METHOD AND DIRECTION -----------
-
-    if DIRECTION == 'backward':
-        intr_start = Snap.Snapshot2D(PLT_FILES[sgn], keys=keys)
-        if PLACEMENT_METHOD == 'PosWithDens':
-            init_x, init_y, init_mass = PosFromDens_blockbased(intr_start, NUM_TRACERS)
-            # init_x, init_y, init_mass = PosFromDens_Bene(intr_start, num_tracers, only_unbound=only_unbound, maxDens=max_dens)
-        elif PLACEMENT_METHOD == 'FromFile':
-            init_x, init_y, init_mass = PosFromFile(PATH_TO_TRACERS_START)
-        else:
-            write_log(PATH_TO_OUTPUT, 'Unknown tracer placement method. Exiting.')
-            sys.exit('Unknown tracer placement method. Exiting.')   
-    elif DIRECTION == 'forward':
-        intr_start = Snap.Snapshot2D(PLT_FILES[0], keys=keys)
-        if PLACEMENT_METHOD == 'PosWithDens':
-            init_x, init_y, init_mass = PosFromDens_blockbased(intr_start,NUM_TRACERS)
-        elif PLACEMENT_METHOD == 'FromFile':
-            init_x, init_y, init_mass = PosFromFile(PATH_TO_TRACERS_START)
-        else:
-            write_log(PATH_TO_OUTPUT, 'Unknown tracer placement method. Exiting.')
-            sys.exit('Unknown tracer placement method. Exiting.')
-    else:
-        write_log(PATH_TO_OUTPUT, 'Unknown integration direction. Exiting.')
-        sys.exit('Unknown integration direction. Exiting.')
+    match DIRECTION:
+        case 'backward':
+            intr_start = Snap.Snapshot2D(PLT_FILES[sgn], keys=keys)
+            match PLACEMENT_METHOD:
+                case 'PosWithDens':
+                    init_x, init_y, init_mass = PosFromDens_blockbased(intr_start, NUM_TRACERS)
+                    # init_x, init_y, init_mass = PosFromDens_Bene(intr_start, num_tracers, only_unbound=only_unbound, maxDens=max_dens)
+                case 'FromFile':
+                    init_x, init_y, init_mass = PosFromFile(PATH_TO_TRACERS_START)
+                case _:
+                    write_log(PATH_TO_OUTPUT, 'Unknown tracer placement method. Exiting.')
+                    sys.exit('Unknown tracer placement method. Exiting.')
+        
+        case 'forward':
+            intr_start = Snap.Snapshot2D(PLT_FILES[0], keys=keys)
+            match PLACEMENT_METHOD:
+                case 'PosWithDens':
+                    init_x, init_y, init_mass = PosFromDens_blockbased(intr_start, NUM_TRACERS)
+                case 'FromFile':
+                    init_x, init_y, init_mass = PosFromFile(PATH_TO_TRACERS_START)
+                case _:
+                    write_log(PATH_TO_OUTPUT, 'Unknown tracer placement method. Exiting.')
+                    sys.exit('Unknown tracer placement method. Exiting.')
+        
+        case _:
+            write_log(PATH_TO_OUTPUT, 'Unknown integration direction. Exiting.')
+            sys.exit('Unknown integration direction. Exiting.')
 
     initial_pos = np.column_stack((init_x, init_y))
 

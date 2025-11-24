@@ -24,7 +24,6 @@ from config import WITH_NEUTRINOS, PATH_TO_OUTPUT
 #keys are entries in the snapshot files, tracer_entries are what we want in the tracer file
 keys_wNu = ['dens', 'temp', 'ye', 'entr', 'velx', 'vely', 'gpot', 'ener', 'fnue', 'fnua', 'fnux', 'enue', 'enua', 'enux']
 tracer_entries_wNu = ['r', 'dens', 'temp', 'ye', 'entr', 'velx', 'vely', 'lnue', 'lnua', 'lnux', 'lanux', 'enue', 'enua', 'enux', 'eanux', 'ejected']
-
 #wNu = with neutrino info; woNu = without neutrino info
 keys_woNu = ['dens', 'temp', 'ye', 'entr', 'velx', 'vely', 'gpot', 'ener']
 tracer_entries_woNu = ['r', 'dens', 'temp', 'ye', 'entr', 'velx', 'vely', 'ejected']
@@ -75,6 +74,7 @@ tracer_entries_fmt={'t': '%.8f',
                     'enua': '%.14e',
                     'enux': '%.14e',
                     'eanux': '%.14e',
+                    'dye': '%.14e',
                     'ejected': '%d'
                     }
 
