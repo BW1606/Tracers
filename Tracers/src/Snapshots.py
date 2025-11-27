@@ -23,39 +23,21 @@ class Snapshot2DBase(ABC):
     """
 
     # Required abstract methods / attributes
-    @property
-    @abstractmethod
-    def bbox(self):
-        pass
 
-    @property
-    @abstractmethod
-    def cells_per_block_x(self):
-        pass
-
-    @property
-    @abstractmethod
-    def cells_per_block_y(self):
-        pass
-
+    #exact simulation time at snapshot 
     @property
     @abstractmethod
     def simtime(self):
         pass
 
+    #dictionary for all thermodynamic variables ['dens', 'ye', ...] {key: array}
     @property
     @abstractmethod
     def td_vars(self):
         pass
 
-    @abstractmethod
-    def cellCoords(self, blockID, with_edges=False):
-        pass
 
-    @abstractmethod
-    def cellVolumes(self, blockID):
-        pass
-
+    #The central function to implement - gives the values of a given variable in td_vars interpolated from output to exact x,y (z) position
     @abstractmethod
     def getQuantAtPos(self, td_var, x, y,):
         pass
@@ -166,17 +148,6 @@ class Snapshot2DFLASH(Snapshot2DBase):
         self._precompute_cell_coords()
 
     # Properties required by abstract base class
-    @property
-    def bbox(self):
-        return self._bbox
-    
-    @property
-    def cells_per_block_x(self):
-        return self._cells_per_block_x
-    
-    @property
-    def cells_per_block_y(self):
-        return self._cells_per_block_y
     
     @property
     def simtime(self):
