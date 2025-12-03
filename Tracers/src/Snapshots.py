@@ -159,21 +159,21 @@ class Snapshot2DFLASH(Snapshot2DBase):
 
     def _precompute_cell_coords(self):
         """Precompute cell centers and edges for all blocks (vectorized)."""
-        n_blocks = self.bbox.shape[0]
+        n_blocks = self._bbox.shape[0]
         
         # Extract all bounding boxes at once
-        xmin = self.bbox[:, 0, 0]  # shape: (n_blocks,)
-        xmax = self.bbox[:, 0, 1]
-        ymin = self.bbox[:, 1, 0]
-        ymax = self.bbox[:, 1, 1]
+        xmin = self._bbox[:, 0, 0]  # shape: (n_blocks,)
+        xmax = self._bbox[:, 0, 1]
+        ymin = self._bbox[:, 1, 0]
+        ymax = self._bbox[:, 1, 1]
         
         # Compute deltas for all blocks
-        delta_x = (xmax - xmin) / self.cells_per_block_x  # shape: (n_blocks,)
-        delta_y = np.abs(ymax - ymin) / self.cells_per_block_y
+        delta_x = (xmax - xmin) / self._cells_per_block_x  # shape: (n_blocks,)
+        delta_y = np.abs(ymax - ymin) / self._cells_per_block_y
         
         # Create cell index arrays
-        cell_indices_x = np.arange(self.cells_per_block_x)  # shape: (cells_per_block_x,)
-        cell_indices_y = np.arange(self.cells_per_block_y)
+        cell_indices_x = np.arange(self._cells_per_block_x)  # shape: (cells_per_block_x,)
+        cell_indices_y = np.arange(self._cells_per_block_y)
         
         # Vectorized computation for all blocks
         # Broadcasting: (n_blocks, 1) + (1, cells_per_block) = (n_blocks, cells_per_block)
@@ -231,8 +231,8 @@ class Snapshot2DFLASH(Snapshot2DBase):
 
     def findBlock(self, x, y, tr_id): #tr_id for testing if singular tracer does weird thing
 
-        x_mask = (self.bbox[:,0,0] <= x) & (x < self.bbox[:,0,1])
-        y_mask = (self.bbox[:,1,0] <= y) & (y < self.bbox[:,1,1])
+        x_mask = (self._bbox[:,0,0] <= x) & (x < self._bbox[:,0,1])
+        y_mask = (self._bbox[:,1,0] <= y) & (y < self._bbox[:,1,1])
 
         block_ids = np.where(x_mask & y_mask)[0]
 
@@ -400,3 +400,9 @@ class Snapshot2DFLASH(Snapshot2DBase):
                 }
 
         return ejected_mass, massfractions
+
+
+# test_HeS_930 = Snapshot2DFLASH('/home/guest/Bene/HeS_2D/HeS_net/HeS_rn16e_hdf5_plt_cnt_0930', ['temp'])
+
+# print(test_HeS_930.getQuantAtPos('temp', 0.31e9, -0.25e9)/1e9)
+
