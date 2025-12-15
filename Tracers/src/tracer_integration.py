@@ -220,8 +220,10 @@ def integrate_single_tracer(tr_id, start_pos, times_chunk, snapshots_meta, sgn, 
 
         # Handle boundary cases
         if t <= times_asc[0]:
+            #print(f'Warning: Tracer {tr_id} access t={t} in chunk: {times_chunk[0]} - {times_chunk[-1]}')
             idx = 0
         elif t >= times_asc[-1]:
+            #print(f'Warning: Tracer {tr_id} access t={t} in chunk: {times_chunk[0]} - {times_chunk[-1]}')
             idx = -1
         else:
             # Interpolate between bracketing snapshots
@@ -291,6 +293,10 @@ def integrate_single_tracer(tr_id, start_pos, times_chunk, snapshots_meta, sgn, 
         pos_eval = result.sol(t_eval)
         t_post_integration = time.time()
 
+        if tr_id == 1:
+            write_log(output_dir, f'        Tracer {tr_id}: t_eval[0] = {t_eval[0]}, start_pos = {start_pos}')
+            write_log(output_dir, f'        Tracer {tr_id}: result.t[0] = {result.t[0]}, result.y[0] = {result.y[0][0], result.y[1][0]}')
+
         # Handle out-of-bounds events
         if result.t_events[0].size > 0:
             still_calc[tr_id] = False
@@ -350,10 +356,22 @@ def integrate_single_tracer(tr_id, start_pos, times_chunk, snapshots_meta, sgn, 
         #             overall: {t_post_writing - tracer_start_time:.2f}s')
 
         # Update multiprocessing arrays for next chunk
-        chunk_first_teval[tr_id] = t_eval[-1]
+        #chunk_first_teval[tr_id] = t_eval[-1]
+        chunk_first_teval[tr_id] = result.t[-1]
         chunk_first_steps[tr_id] = abs(result.t[-1] - result.t[-2])
 
-        return np.array([pos_eval[0][-1], pos_eval[1][-1]]), local_oob_events, [], tr_id
+
+        if tr_id == 1:
+            write_log(output_dir, f'        Tracer {tr_id}: t_eval[-1] = {t_eval[-1]}, pos_eval[-1] = {pos_eval[0][-1], pos_eval[1][-1]}')
+            write_log(output_dir, f'        Tracer {tr_id}: result.t[-1] = {result.t[-1]}, result.y[-1] = {result.y[0][-1], result.y[1][-1]}')
+            write_log(output_dir, f'        Tracer {tr_id}: t_eval[-2] = {t_eval[-2]}, pos_eval[-2] = {pos_eval[0][-2], pos_eval[1][-2]}')
+            write_log(output_dir, f'        Tracer {tr_id}: result.t[-2] = {result.t[-2]}, result.y[-2] = {result.y[0][-2], result.y[1][-2]}')
+            write_log(output_dir, f'        snap time [-1] = {snapshots[-1].currentSimTime()}')
+            write_log(output_dir, f'        snap time [-2] = {snapshots[-2].currentSimTime()}')
+            
+        #TODO: not pos_eval[-1] but result.y[:,-1]
+        return np.array([result.y[0][-1], result.y[1][-1]]), local_oob_events, [], tr_id
+        #return np.array([pos_eval[0][-1], pos_eval[1][-1]]), local_oob_events, [], tr_id
 
     except Exception as e:
         tb_str = traceback.format_exc()

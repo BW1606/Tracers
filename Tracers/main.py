@@ -147,8 +147,6 @@ if __name__ == "__main__":
 
         prev_end_index = end
 
-
-
         if len(plt_chunk) == 1:
             write_log(PATH_TO_OUTPUT, f'Chunk starting at {start} has only one snapshot in it - ignore it')
             continue

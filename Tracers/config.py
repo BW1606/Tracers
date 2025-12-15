@@ -19,7 +19,7 @@ TODO:
 
 # S15
 PATH_TO_PLTFILES = '/home/template_scripts/FLASH/2D_simulation/S15_Ritter_hf10_2d/output/S15_Ritter_hf10_hdf5_plt_cnt'
-PATH_TO_OUTPUT = '/home/bweinhold/Auswertung/2D_Analysis/2D_Tracers/data/Simulations/S15_Ritter_hf10/test_25_newnew'
+PATH_TO_OUTPUT = '/home/bweinhold/Auswertung/2D_Analysis/2D_Tracers/data/Simulations/final_test/tr25_test-2/'
 PATH_TO_PROGFILE = '/home/bweinhold/Auswertung/2D_Analysis/2D_Tracers/data/Progenitors/S15_NuGrid_log423.data'
 INPUT_FILE = 'FLASH'
 
@@ -39,12 +39,12 @@ INPUT_FILE = 'FLASH'
 PLT_FILES = sorted(glob(PATH_TO_PLTFILES + "*", recursive=False))#[:793]
 
 # Logging 
-ARB_MESSAGE = 'test logging, match cases, snap hierarchy'                            # Arbitrary Message to run.log
+ARB_MESSAGE = 'result.y[:,-1] as starting pos, result.t[-1] as starting time'       # Arbitrary Message to run.log
 LOG_EVERY = 120#s                                               # Interval in which a progress bar will be printed into run.log
 
 # Integration
 DIRECTION = 'backward'                                          # 'forward' or 'backward' - time direction of integration
-CHUNK_SIZE = 10                                               # tracers are integrated throughout the simulation in chunks
+CHUNK_SIZE = 200                                               # tracers are integrated throughout the simulation in chunks
 RTOL, ATOL, MAXSTEP = 1e-2, 1e4, 1e-4                           # tolerances for solve_ivp/RKF5 - see README
 TIME_LIMIT = CHUNK_SIZE                                                # single tracer time limit to avoid convergance problems
 
@@ -66,7 +66,8 @@ PATH_TO_TRACERS_START = '/home/bweinhold/Auswertung/2D_Analysis/2D_Tracers/data/
 
 # Progenitor                                                    
 CALC_SEEDS = True                                                # Calculates initial composition of tracer from progenitor file
-PROG_TYPE = 'NuGrid'     #FLASH/NuGrid                                        # type of progenitor file must be in progenitors.py (see README)                   
+PROG_TYPE = 'NuGrid'     #FLASH/NuGrid                           # type of progenitor file must be in progenitors.py (see README)                   
 
 # Domain bounds
+#TODO: this is information i can get from the snapshot objects
 XMIN, XMAX, YMIN, YMAX = 0, 3.2e9, -3.2e9, 3.2e9

@@ -22,7 +22,7 @@ Description: Python pipeline for placing and integrating Lagrangian tracer parti
 
 - **Tracer Placement**  
   - Place tracers based on density and Ye deviations.  
-  - Supports increasing tracer density in regions where `|Ye - 0.5|` is significant.  
+  - Supports increasing tracer density in regions where `|Ye - 0.5| > 0.02` .  
 
 - **Tracer Integration**  
   - Integrates tracers through the FLASH velocity field interpolating both in space between cells and in time between snapshots.  
@@ -198,11 +198,11 @@ All parameters are configured in `config.py` before running the integration.
   - if 'FromFile': need to set parameter: 'PATH_TO_TRACERS_START' with columns x, y, M_tr
   - if 'PosWithDens', calls PosFromDens_blockbased which loops over blocks and sets tracers according to NUM_TRACERS, ONLY_UNBOUND, MAX_TEMP_PLACE, YE_STEPS, MAX_DENS_PLACE
     - if ONLY_UNBOUND = 'False': only exclude areas with dens > MAX_DENS_PLACE and T > MAX_TEMP_PLACE, place tracers everywhere else
-    - if ONLY_UNBOUND = 'True': only place tracers in cells with v_rad > 0 (outwards moving) and gpot+ener > 0 (energetically unbound) and T < MAX_TEMP_PLACE
+    - if ONLY_UNBOUND = 'True': only place tracers in cells with v_rad > 0 (outwards moving) and gpot+ener > 0 (gravitationally unbound) and T < MAX_TEMP_PLACE
     - general workflow:
       - loop over all blocks, check for cells according to the given criterion (only unbound or with max dens) and save them, add up the mass from those cells
       - second loop over the blocks, check how much tracers per block by comparing overall amount of mass with mass per block and tracers to place
-      - IF YE_STEPS = 'True' stepwise increasement of tracers to place per block
+      - IF YE_STEPS = 'True' stepwise increasement of tracers to place per block, if Ye deviation enough
       - mass per tracer: M_block_crit/N_tracer_per_block
       - if td_vars keys are different for another code, you have to adjust this function
 ---
