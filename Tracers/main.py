@@ -22,8 +22,6 @@ from src.tracer_placement import PosFromDens_blockbased, PosFromFile
 from src.tracer_integration import sgn, integrate_chunk
 from src.tracer_files import ensure_ascending_time_order_nse_flag, write_all_headers_parallel, tracer_entries, keys
 
-#import src.Snapshots as Snap
-
 
 if __name__ == "__main__":
     

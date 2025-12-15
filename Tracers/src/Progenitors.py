@@ -151,6 +151,7 @@ class Progenitor_FLASH(Progenitor):
         for line in header_lines[2:]:
             column_names.append(line)
 
+        #check to see if your progenitor file really needs skiprows = 30 -  sometimes this differs
         prog_dat = pd.read_table(path_to_progfile, sep=r"\s+", skiprows=30, header=None)
         prog_dat.columns = column_names
 
