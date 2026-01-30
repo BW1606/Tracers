@@ -19,16 +19,15 @@ from typing import List, Dict
 import numpy as np
 import pandas as pd
 from scipy.interpolate import interp1d
-from abc import ABC, abstractmethod
-from typing import Dict
-import numpy as np
-from scipy.interpolate import interp1d
-import pandas as pd
+
 
 class Progenitor(ABC):
     """
-    Abstract base class for progenitor models.
-    
+    Base class for stellar progenitor models.
+
+    Stores the radial grid and mass fractions of nuclear species. Provides
+    an interface for retrieving mass fractions at any radius.
+
     Attributes
     ----------
     radius : np.ndarray
@@ -62,30 +61,47 @@ class Progenitor(ABC):
     }
 
     def __init__(self, radius: np.ndarray, abundances: Dict[str, np.ndarray]):
+        # Store radius and abundance arrays
         self.radius = np.asarray(radius)
         self.abundances = abundances
 
     @abstractmethod
     def massfractions_of_r(self, r: float) -> Dict[str, Dict]:
         """
-        Return mass fractions of all nuclear species at radius r including metadata.
-        Each species entry is a dictionary: {'Z':..., 'A':..., 'X':...}
+        Return mass fractions of all nuclear species at a given radius.
+
+        Each species entry contains its metadata and fraction:
+            {'Z': ..., 'A': ..., 'X': ...}
+
+        Parameters
+        ----------
+        r : float
+            Radius [cm] at which to evaluate mass fractions.
+
+        Returns
+        -------
+        Dict[str, Dict]
+            Mass fraction dictionary for all species at radius r.
         """
         pass
 
     def __repr__(self):
+        # Simple representation for debugging and inspection
         return f"<{self.__class__.__name__}: {len(self.radius)} zones, species={list(self.abundances.keys())}>"
 
 
 class Progenitor_NuGrid(Progenitor):
     """
-    Progenitor data coming from NuGrid.
+    Progenitor using NuGrid data.
+
+    Reads radii and abundances from a NuGrid text file and allows
+    evaluation of mass fractions at any radius.
     """
 
     def __init__(self, path_to_progfile):
         prog_dat = pd.read_table(path_to_progfile, sep='\s+', skiprows=5)
         R_sun_cm = 6.9598e10
-        radii = prog_dat['radius'].values * R_sun_cm
+        radii = prog_dat['radius'].values * R_sun_cm# Convert radii to cm
 
         # read abundances (X) only
         species_cols = list(prog_dat.columns[63:84]) #this is specific to NuGrid prog file
@@ -120,11 +136,11 @@ class Progenitor_NuGrid(Progenitor):
 
 class Progenitor_FLASH(Progenitor):
     """
-    Progenitor data coming from a progenitor dat file made as FLASH input
+    Progenitor using a FLASH input file.
 
+    Reads radii and abundances from a FLASH progenitor text file and allows
+    evaluation of mass fractions at any radius.
     """
-
-
     def __init__(self, path_to_progfile):
         with open(path_to_progfile, "r") as f:
             header_lines = [line.strip() for line in f.readlines()[:30]]
@@ -135,6 +151,7 @@ class Progenitor_FLASH(Progenitor):
         for line in header_lines[2:]:
             column_names.append(line)
 
+        #check to see if your progenitor file really needs skiprows = 30 -  sometimes this differs
         prog_dat = pd.read_table(path_to_progfile, sep=r"\s+", skiprows=30, header=None)
         prog_dat.columns = column_names
 
@@ -154,19 +171,3 @@ class Progenitor_FLASH(Progenitor):
             results[sp] = {'Z': meta['Z'], 'A': meta['A'], 'X': X_val}
 
         return results
-
-# S15 = Progenitor_NuGrid('/home/bweinhold/Auswertung/2D_Analysis/2D_Tracers/try_python/S15_NuGrid_log423.data')
-
-# x = 1.736771e+08
-# y = 9.561963e+07
-
-# r = np.sqrt(x**2 + y**2)
-
-# print(S15.massfractions_of_r(r)['fe54'])
-
-# RSG_path = '/home/template_scripts/FLASH/2D_simulation/RSG_s12.6/RSG_s12.6.1d'
-
-# prog = Progenitor_FLASH(RSG_path)
-
-# print(prog.massfractions_of_r(1e8))
-
